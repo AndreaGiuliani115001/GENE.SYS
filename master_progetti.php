@@ -1,5 +1,6 @@
 <?php
-session_start();
+
+include 'navbar.php';
 
 /** @var mysqli $conn */
 include('connection.php');
@@ -33,60 +34,72 @@ if ($result->num_rows === 0) {
     die("Nessun progetto trovato per questa linea di prodotto.");
 }
 ?>
+<style>
+    /* Imposta altezza e larghezza del 100% su html e body */
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
 
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progetti dell'Azienda</title>
-    <!-- Includi Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">GENE.SYS</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="master_dashboard.php">Dashboard Master</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-<div class="container mt-5">
-    <h2>Progetti dell'Azienda</h2>
-    <div class="row">
-        <?php while ($progetto = $result->fetch_assoc()):
-            $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['id_progetto'];
-            ?>
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <img src="<?= htmlspecialchars($progetto['immagine'], ENT_QUOTES, 'UTF-8') ?>" class="card-img-top" alt="Progetto">
-                    <div class="card-body">
-                        <h5 class="card-title"><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h5>
-                        <p class="card-text"><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
-                        <p class="card-text"><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
-                        <p class="card-text"><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+    /* Imposta il contenitore principale per occupare tutto lo schermo */
+    .full-screen-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* Distribuisce il contenuto tra header e footer */
+        min-height: 100vh; /* Occupazione dell'intero viewport */
+    }
+
+    /* Stile per il footer per mantenerlo in fondo alla pagina */
+    footer {
+        padding: 20px;
+    }
+</style>
+
+
+<div class="full-screen-container">
+    <div class="container mt-5 my-auto">
+        <h2>Progetti dell'Azienda</h2>
+
+        <!-- Mostra il pulsante "Aggiungi Progetto" solo se l'utente è master -->
+        <?php if ($_SESSION['ruolo'] == 'master'): ?>
+            <div class="text-end mb-4">
+                <a href="aggiungi_progetto.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                   class="btn btn-success">Aggiungi Progetto</a>
+            </div>
+        <?php endif; ?>
+
+        <div class="row">
+            <?php while ($progetto = $result->fetch_assoc()):
+                $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['id_progetto'];
+                ?>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="<?= htmlspecialchars($progetto['immagine'], ENT_QUOTES, 'UTF-8') ?>"
+                             class="card-img-top" alt="Progetto">
+                        <div class="card-body">
+                            <h5 class="card-title"><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h5>
+                            <p class="card-text">
+                                <strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="card-text">
+                                <strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?>
+                            </p>
+                            <p class="card-text">
+                                <strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
+                            </p>
+                            <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>"
+                               class="btn btn-info">Visualizza Progetto</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        <?php endwhile; ?>
+            <?php endwhile; ?>
+        </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="bg-white text-black text-center">
+        &copy; 2024 GENE.SYS. Tutti i diritti riservati.
+    </footer>
 </div>
-
-<!-- Footer -->
-<footer class="bg-dark text-white text-center py-3 mt-5">
-    &copy; 2024 GENE.SYS. Tutti i diritti riservati.
-</footer>
-
-<!-- Includi Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

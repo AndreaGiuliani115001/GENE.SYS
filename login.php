@@ -1,6 +1,5 @@
 <?php
-session_start();
-
+include 'navbar.php';
 /** @var mysqli $conn */
 include('connection.php');
 
@@ -25,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['user_id'] = $user_id;
             $_SESSION['ruolo'] = $ruolo;
             $_SESSION['azienda_id'] = $azienda_id;
+            $_SESSION['loggedin'] = true;
+            $_SESSION['username'] = $username;
 
             // Reindirizza in base al ruolo
             if ($ruolo == 'master') {
@@ -45,36 +46,61 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <title>Login - GENE.SYS</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+    <style>
+        body {
+            background-color: #f8f9fa; /* Colore simile al sito di esempio */
+        }
+        .login-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-top: 80px;
+        }
+        h2 {
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #17a2b8; /* Colore azzurro simile al bottone 'Contact us' */
+            border-color: #17a2b8;
+        }
+        .btn-primary:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+        /* Stile dell'alert di errore */
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+
+
 <body>
-<div class="container">
-    <h2 class="mt-5">Login</h2>
-    <form method="post" action="login.php">
-        <div class="mb-3">
-            <label for="username" class="form-label">Username:</label>
-            <input type="text" name="username" id="username" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password:</label>
-            <input type="password" name="password" id="password" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
-    <?php if (isset($error)) { ?>
-        <div class="alert alert-danger mt-3">
-            <?php echo $error; ?>
-        </div>
-    <?php } ?>
+<div class="container d-flex justify-content-center">
+    <div class="login-container col-md-6">
+        <h2 class="text-center">Login</h2>
+        <form method="post" action="login.php">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" name="username" id="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" name="password" id="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <?php if (isset($error)) { ?>
+            <div class="alert alert-danger mt-3">
+                <?php echo $error; ?>
+            </div>
+        <?php } ?>
+    </div>
 </div>
 
 <!-- Bootstrap JS and dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
