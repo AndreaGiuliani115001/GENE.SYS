@@ -64,7 +64,7 @@ if ($result->num_rows === 0) {
         <?php if ($_SESSION['ruolo'] == 'master'): ?>
             <div class="text-end mb-4">
                 <a href="aggiungi_progetto.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                   class="btn btn-success">Aggiungi Progetto</a>
+                   class="btn btn-primary ">Aggiungi Progetto</a>
             </div>
         <?php endif; ?>
 
@@ -87,7 +87,7 @@ if ($result->num_rows === 0) {
                                 <strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
                             </p>
                             <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>"
-                               class="btn btn-info">Visualizza Progetto</a>
+                               class="btn btn-outline-primary btn-rounded">Visualizza Progetto</a>
                         </div>
                     </div>
                 </div>

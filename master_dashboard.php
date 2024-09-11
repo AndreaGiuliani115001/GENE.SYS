@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['campo_operativo_id']))
                     <?php endwhile; ?>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Visualizza Clienti</button>
+            <button type="submit" class="btn btn-primary w-100 ">Visualizza Clienti</button>
         </form>
 
         <?php if (isset($clienti)): ?>
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['campo_operativo_id']))
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?>
                         <a href="master_linee_prodotti.php?azienda_id=<?= $row['id'] ?>"
-                           class="btn btn-sm btn-outline-primary">Visualizza Linee di Prodotto</a>
+                           class="btn btn-sm btn-outline-primary btn-rounded">Visualizza Linee di Prodotto</a>
                     </li>
                 <?php endwhile; ?>
             </ul>

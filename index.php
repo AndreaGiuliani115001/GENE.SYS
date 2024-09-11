@@ -48,7 +48,7 @@
             <div class="col-md-4">
                 <div class="card text-center mb-4" style="border-radius: 10px;">
                     <div class="card-body">
-                        <i class="fas fa-industry fa-3x mb-3 text-primary"></i> <!-- Icona Produzione -->
+                        <i class="fas fa-cogs fa-3x mb-3 text-primary"></i> <!-- Icona Produzione -->
                         <h5 class="card-title">Produzione</h5>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
             <div class="col-md-4">
                 <div class="card text-center mb-4" style="border-radius: 10px;">
                     <div class="card-body">
-                        <i class="fas fa-tools fa-3x mb-3 text-primary"></i> <!-- Icona Manutenzione -->
+                        <i class="fas fa-wrench fa-3x mb-3 text-primary"></i> <!-- Icona Manutenzione -->
                         <h5 class="card-title">Manutenzione</h5>
                     </div>
                 </div>

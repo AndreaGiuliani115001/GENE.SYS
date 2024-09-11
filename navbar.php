@@ -48,6 +48,7 @@ session_start();
 
         .btn-outline-primary:hover {
             background-color: #27bcbc;
+            border-color: #27bcbc;
             color: white;
         }
 
@@ -71,7 +72,7 @@ session_start();
 
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="index.php">
             <img src="uploads/logoGenesis.png" alt="Logo" style="width: 40px; height: 40px;">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
