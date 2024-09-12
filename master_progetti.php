@@ -88,6 +88,12 @@ if ($result->num_rows === 0) {
                             </p>
                             <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>"
                                class="btn btn-outline-primary btn-rounded">Visualizza Progetto</a>
+                            <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                               class="btn btn-danger btn-rounded"
+                               onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');">
+                                Elimina Progetto
+                            </a>
+
                         </div>
                     </div>
                 </div>

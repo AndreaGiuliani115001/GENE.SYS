@@ -50,7 +50,7 @@ $sostenibilita = $sost_stmt->get_result();
         }
 
         .details-block {
-            border: 2px solid #007bff;
+            border: 2px solid #27bcbc;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;

@@ -42,7 +42,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
     }
 
     .details-block {
-        border: 2px solid #007bff;
+        border: 2px solid #27bcbc;
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
@@ -101,9 +101,9 @@ $progetto = $stmt->get_result()->fetch_assoc();
         </div>
 
         <!-- Blocco Immagine -->
-        <div class="project-image">
+        <!--<div class="project-image">
             <img src="<?= htmlspecialchars($progetto['immagine'], ENT_QUOTES, 'UTF-8') ?>" alt="Immagine Progetto">
-        </div>
+        </div>-->
 
         <!-- Blocco Azioni -->
         <div class="action-buttons">

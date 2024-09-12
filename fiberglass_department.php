@@ -151,9 +151,9 @@ $step3 = $produzione['step3_mounting'];
         </div>
 
         <!-- Blocco Immagine -->
-        <div class="project-image">
+        <!--<div class="project-image">
             <img src="<?= htmlspecialchars($progetto['immagine'], ENT_QUOTES, 'UTF-8') ?>" alt="Immagine Progetto">
-        </div>
+        </div>-->
 
         <!-- Blocco Azioni -->
         <div class="action-buttons">
