@@ -15,7 +15,7 @@ $progetto_id = $_GET['progetto_id'];
 
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
-    SELECT p.cin, p.state, p.delivery, 
+    SELECT p.cin, p.state, p.delivery, p.immagine,
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            p.id AS id_progetto
@@ -25,17 +25,16 @@ $stmt = $conn->prepare("
     WHERE p.id = ?");
 $stmt->bind_param("i", $progetto_id);
 $stmt->execute();
-$result = $stmt->get_result();
-
-// Se il progetto non viene trovato
-if ($result->num_rows === 0) {
-    die("Progetto non trovato.");
-}
-
-$progetto = $result->fetch_assoc();
+$progetto = $stmt->get_result()->fetch_assoc();
 $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['id_progetto'];
-?>
 
+// Recupera i dati di sostenibilità
+$sost_stmt = $conn->prepare("
+    SELECT * FROM sostenibilita_progetti WHERE progetto_id = ?");
+$sost_stmt->bind_param("i", $progetto_id);
+$sost_stmt->execute();
+$sostenibilita = $sost_stmt->get_result();
+?>
 
     <style>
         html, body {
@@ -50,8 +49,24 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
             min-height: 100vh;
         }
 
-        .container {
-            flex-grow: 1;
+        .details-block {
+            border: 2px solid #007bff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .support-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .support-buttons a {
+            margin: 10px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 16px;
         }
 
         footer {
@@ -59,17 +74,18 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
             color: white;
             padding: 20px;
         }
+
     </style>
 
-
 <div class="full-screen-container">
-    <!-- Main Content -->
     <div class="container mt-5">
-        <h2 class="mb-4">Sostenibilità per il progetto <?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h2>
-
-        <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
-        <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
-        <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+        <!-- Blocco Dettagli -->
+        <div class="details-block">
+            <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') ?></h3>
+            <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
+            <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
+            <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+        </div>
 
         <!-- Tabella di Sostenibilità -->
         <table class="table table-bordered table-hover mt-4">
@@ -83,48 +99,15 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>Gelcoat</td>
-                <td>Surface finishing resin</td>
-                <td>Euroresin - NEOGEL NPG 8373-W-9910</td>
-                <td>260kg</td>
-                <td>6,7%</td>
-            </tr>
-            <tr>
-                <td>Fiberglass</td>
-                <td>Reinforcement fiber</td>
-                <td>VELOX</td>
-                <td>1430kg</td>
-                <td>36,9%</td>
-            </tr>
-            <tr>
-                <td>Core</td>
-                <td>Expanded PVC 80-100-130kg/m^3</td>
-                <td>Polycell</td>
-                <td>85 kg</td>
-                <td>2,2%</td>
-            </tr>
-            <tr>
-                <td>Marine plywood</td>
-                <td>Anti-compression reinforcements</td>
-                <td>Rossi legnami</td>
-                <td>20 kg</td>
-                <td>0,05%</td>
-            </tr>
-            <tr>
-                <td>Brass - steel inserts</td>
-                <td>Bolted coupling reinforcements</td>
-                <td>Dugheria - Stilferro</td>
-                <td>81 kg</td>
-                <td>2,1%</td>
-            </tr>
-            <tr>
-                <td>Vinylester resin</td>
-                <td>Vinylester resin matrix</td>
-                <td>Euroresin</td>
-                <td>2000kg</td>
-                <td>51,6%</td>
-            </tr>
+            <?php while ($elemento = $sostenibilita->fetch_assoc()): ?>
+                <tr>
+                    <td><?= htmlspecialchars($elemento['element'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($elemento['description'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($elemento['productor'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($elemento['weight_kg'], ENT_QUOTES, 'UTF-8') ?> kg</td>
+                    <td><?= htmlspecialchars($elemento['percentage_total'], ENT_QUOTES, 'UTF-8') ?>%</td>
+                </tr>
+            <?php endwhile; ?>
             </tbody>
         </table>
 
@@ -133,7 +116,7 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3">
+    <footer class="bg-white text-black text-center py-3">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>

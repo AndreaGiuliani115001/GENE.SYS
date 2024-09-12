@@ -132,7 +132,7 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3 mt-5">
+    <footer class="bg-white text-black text-center py-3 mt-5">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>

@@ -15,7 +15,7 @@ $progetto_id = $_GET['progetto_id'];
 
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
-    SELECT p.cin, p.state, p.delivery, 
+    SELECT p.cin, p.state, p.delivery, p.immagine,
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            p.id AS id_progetto
@@ -25,15 +25,15 @@ $stmt = $conn->prepare("
     WHERE p.id = ?");
 $stmt->bind_param("i", $progetto_id);
 $stmt->execute();
-$result = $stmt->get_result();
-
-// Se il progetto non viene trovato
-if ($result->num_rows === 0) {
-    die("Progetto non trovato.");
-}
-
-$progetto = $result->fetch_assoc();
+$progetto = $stmt->get_result()->fetch_assoc();
 $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['id_progetto'];
+
+// Recupera i dati di manutenzione
+$man_stmt = $conn->prepare("
+    SELECT * FROM manutenzione_progetti WHERE progetto_id = ?");
+$man_stmt->bind_param("i", $progetto_id);
+$man_stmt->execute();
+$installazioni = $man_stmt->get_result();
 ?>
 
 <style>
@@ -49,8 +49,30 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
         min-height: 100vh;
     }
 
-    .container {
-        flex-grow: 1;
+    .details-block {
+        border: 2px solid #27bcbc;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background-color: #f5f5f5;
+    }
+
+    .table-btn {
+        width: 100%;
+        display: block;
+        text-align: center;
+    }
+
+    .support-buttons {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .support-buttons a {
+        margin: 10px;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 16px;
     }
 
     footer {
@@ -58,16 +80,18 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
         color: white;
         padding: 20px;
     }
+
 </style>
 
 <div class="full-screen-container">
-    <!-- Main Content -->
     <div class="container mt-5">
-        <h2 class="mb-4">Manutenzione per il progetto <?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h2>
-
-        <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
-        <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
-        <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+        <!-- Blocco Dettagli -->
+        <div class="details-block">
+            <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') ?></h3>
+            <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
+            <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
+            <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+        </div>
 
         <!-- Tabella delle Installations -->
         <table class="table table-bordered table-hover mt-4">
@@ -80,44 +104,35 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>Transmission</td>
-                <td>ok</td>
-                <td>227h</td>
-                <td><a href="#" class="btn btn-sm btn-info">Checklist</a></td>
-            </tr>
-            <tr>
-                <td>Engine Room</td>
-                <td>ok</td>
-                <td>136h</td>
-                <td><a href="#" class="btn btn-sm btn-info">Checklist</a></td>
-            </tr>
-            <tr>
-                <td>Hull Antifouling</td>
-                <td>not work</td>
-                <td>0 d</td>
-                <td><a href="#" class="btn btn-sm btn-info">Checklist</a></td>
-            </tr>
-            <tr>
-                <td>Plant Room</td>
-                <td>update available</td>
-                <td>3 y</td>
-                <td><a href="#" class="btn btn-sm btn-info">Checklist</a></td>
-            </tr>
+            <?php while ($installazione = $installazioni->fetch_assoc()): ?>
+                <tr>
+                    <td><a href="#"
+                           class="btn btn-outline-primary table-btn"><?= htmlspecialchars($installazione['installation_name'], ENT_QUOTES, 'UTF-8') ?></a>
+                    </td>
+                    <td><?= htmlspecialchars($installazione['status'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($installazione['next_check'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><a href="<?= htmlspecialchars($installazione['checklist_url'], ENT_QUOTES, 'UTF-8') ?>"
+                           class="btn btn-sm btn-primary">Checklist</a></td>
+                </tr>
+            <?php endwhile; ?>
             </tbody>
         </table>
 
-        <!-- Pulsante per tornare indietro -->
-        <a href="dashboard_progetto.php?progetto_id=<?= $progetto_id ?>" class="btn btn-secondary mt-4">Torna alla
-            Dashboard Progetto</a>
+        <!-- Sezione Supporto -->
+        <div class="support-buttons">
+            <a href="#" class="btn btn-outline-primary">Technical Drawing</a>
+            <a href="#" class="btn btn-outline-primary">Print Status Checklist</a>
+        </div>
+
+        <!-- Pulsante Historical -->
+        <a href="#" class="btn btn-secondary mt-4">Historical</a>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3">
+    <footer class="bg-white text-black text-center py-3">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>
-
 
 </body>
 </html>
