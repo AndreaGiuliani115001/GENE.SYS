@@ -46,37 +46,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-    <style>
-        body {
-            background-color: #f8f9fa; /* Colore simile al sito di esempio */
-        }
-        .login-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            margin-top: 80px;
-        }
-        h2 {
-            font-weight: bold;
-        }
-        .btn-primary {
-            background-color: #17a2b8; /* Colore azzurro simile al bottone 'Contact us' */
-            border-color: #17a2b8;
-        }
-        .btn-primary:hover {
-            background-color: #138496;
-            border-color: #117a8b;
-        }
-        /* Stile dell'alert di errore */
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-    </style>
+<style>
+    body {
+        background-color: #f8f9fa; /* Colore simile al sito di esempio */
+    }
 
+    .login-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        margin-top: 80px;
+    }
 
-<body>
+    h2 {
+        font-weight: bold;
+    }
+
+    .btn-primary {
+        background-color: #17a2b8; /* Colore azzurro simile al bottone 'Contact us' */
+        border-color: #17a2b8;
+    }
+
+    .btn-primary:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+
+    /* Stile dell'alert di errore */
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
 <div class="container d-flex justify-content-center">
     <div class="login-container col-md-6">
         <h2 class="text-center">Login</h2>
@@ -97,10 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         <?php } ?>
     </div>
-</div>
 
-<!-- Bootstrap JS and dependencies -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 </body>
 </html>
 

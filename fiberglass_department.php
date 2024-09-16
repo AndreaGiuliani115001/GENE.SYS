@@ -1,5 +1,4 @@
 <?php
-
 include 'navbar.php';
 
 /** @var mysqli $conn */
@@ -28,19 +27,6 @@ $stmt->bind_param("i", $progetto_id);
 $stmt->execute();
 $progetto = $stmt->get_result()->fetch_assoc();
 
-// Recupera i dettagli di avanzamento nel Fiberglass Department
-$prod_stmt = $conn->prepare("
-    SELECT * FROM produzione_fiberglass WHERE progetto_id = ?");
-$prod_stmt->bind_param("i", $progetto_id);
-$prod_stmt->execute();
-$produzione = $prod_stmt->get_result()->fetch_assoc();
-
-// Imposta le date di inizio e fine, e gli step
-$start_date = $produzione['start_date'];
-$end_date = $produzione['end_date'];
-$step1 = $produzione['step1_fiberglass'];
-$step2 = $produzione['step2_paint'];
-$step3 = $produzione['step3_mounting'];
 ?>
 
 <style>
@@ -62,11 +48,10 @@ $step3 = $produzione['step3_mounting'];
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        background-color: #f5f5f5;
+        background-color: white;
     }
 
     .progress-block {
-        text-align: center;
         margin: 30px 0;
     }
 
@@ -78,7 +63,6 @@ $step3 = $produzione['step3_mounting'];
     }
 
     .progress-bar div {
-        width: <?= ($step1 + $step2 + $step3) * 33.33 ?>%;
         background-color: #27bcbc;
         height: 30px;
     }
@@ -144,36 +128,31 @@ $step3 = $produzione['step3_mounting'];
     <div class="container">
         <!-- Blocco Dettagli -->
         <div class="details-block">
-            <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8'). " #" . $progetto_id  ?></h3>
+            <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') . " #" . $progetto_id ?></h3>
+            <!-- Blocco Progresso -->
+            <div class="progress-block">
+                <h4>Avanzamento</h4>
+                <div class="progress-bar">
+                    <div></div>
+                </div>
+            </div>
             <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+            <a href="checklist.php?progetto_id=<?= $progetto_id ?>&componente=Secondari"
+               class="btn btn-primary">Verifica materiale</a>
         </div>
-
-        <!-- Blocco Immagine -->
-        <!--<div class="project-image">
-            <img src="<?= htmlspecialchars($progetto['immagine'], ENT_QUOTES, 'UTF-8') ?>" alt="Immagine Progetto">
-        </div>-->
 
         <!-- Blocco Azioni -->
         <div class="action-buttons">
-            <a href="#" class="btn btn-outline-primary">Technical Project</a>
-            <a href="#" class="btn btn-outline-primary">Boat Configuration</a>
-            <a href="#" class="btn btn-outline-primary">Print Status Checklist</a>
+            <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=scafo"
+               class="btn btn-outline-primary">Scafo completo</a>
+            <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=coperta"
+               class="btn btn-outline-primary">Coperta completa</a>
+            <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=secondari"
+               class="btn btn-outline-primary">Secondari</a>
         </div>
 
-        <!-- Blocco Progresso -->
-        <div class="progress-block">
-            <h4>Avanzamento</h4>
-            <div class="progress-bar">
-                <div></div>
-            </div>
-            <div class="step-status">
-                <div><strong>Step 1:</strong> Fiberglass <?= $step1 ? '✔' : '❌' ?><br><br><p><strong>Start Date:</strong> <?= htmlspecialchars($start_date, ENT_QUOTES, 'UTF-8') ?></p></div>
-                <div><strong>Step 2:</strong> Paint <?= $step2 ? '✔' : '❌' ?></div>
-                <div><strong>Step 3:</strong> Mounting <?= $step3 ? '✔' : '❌' ?><br><br><p><strong>End Date:</strong> <?= htmlspecialchars($end_date, ENT_QUOTES, 'UTF-8') ?></p></div>
-            </div>
-        </div>
     </div>
 </div>
 

@@ -61,7 +61,7 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
         padding: 20px;
         border: 1px solid #ddd;
         border-radius: 10px;
-        background-color: #f5f5f5;
+        background-color: white;
         transition: background-color 0.3s;
         margin-bottom: 20px;
     }

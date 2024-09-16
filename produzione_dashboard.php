@@ -51,11 +51,11 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
 
     .details-block {
         text-align: left;
-        border: 2px solid #000;
+        border: 2px solid #27bcbc;
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        background-color: #f5f5f5;
+        background-color: white;
     }
 
     .project-image img {
@@ -78,7 +78,6 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
         max-width: 250px;
         text-align: center;
         font-size: 18px;
-        font-weight: bold;
         border-radius: 50px;
         text-decoration: none;
     }

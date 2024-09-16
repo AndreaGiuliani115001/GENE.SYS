@@ -54,7 +54,7 @@ $sostenibilita = $sost_stmt->get_result();
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            background-color: #f5f5f5;
+            background-color: white;
         }
 
         .support-buttons {
