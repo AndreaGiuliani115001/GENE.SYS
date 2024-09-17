@@ -1,11 +1,10 @@
 <?php
-session_start();
-
+include 'navbar.php';
 /** @var mysqli $conn */
 include('connection.php');
 
-// Verifica se l'utente è un Master
-if ($_SESSION['ruolo'] != 'master') {
+// Verifica se l'utente è loggato
+if (!isset($_SESSION['ruolo']) || $_SESSION['ruolo'] != 'master') {
     header("Location: login.php");
     exit;
 }
@@ -13,36 +12,77 @@ if ($_SESSION['ruolo'] != 'master') {
 // Recupera l'ID del progetto dalla query string
 $progetto_id = $_GET['progetto_id'];
 
-// Funzione per eliminare le informazioni collegate
-function elimina_dati_correlati($conn, $table, $progetto_id) {
-    $stmt = $conn->prepare("DELETE FROM $table WHERE progetto_id = ?");
-    if ($stmt) {
-        $stmt->bind_param("i", $progetto_id);
-        $stmt->execute();
-        $stmt->close();
-    } else {
-        echo "Errore: " . $conn->error;
-        exit;
-    }
-}
+// Recupera l'ID dell'azienda dalla query string
+$azienda_id = $_GET['azienda_id'];
 
-// Elimina i dati correlati nelle altre tabelle
-elimina_dati_correlati($conn, 'produzione_fiberglass', $progetto_id);
-elimina_dati_correlati($conn, 'manutenzione_progetti', $progetto_id);
-elimina_dati_correlati($conn, 'sostenibilita_progetti', $progetto_id);
+// Recupera l'ID della linea di prodotto dell'azienda dalla query string
+$linea_prodotto_id = $_GET['linea_prodotto_id'];
 
-// Elimina il progetto dal database
-$stmt = $conn->prepare("DELETE FROM progetti WHERE id = ?");
-if ($stmt) {
+// Inizio transazione per garantire che tutte le operazioni siano eseguite correttamente
+$conn->begin_transaction();
+
+try {
+    // Recupera il percorso dell'immagine associata al progetto
+    $stmt = $conn->prepare("SELECT immagine FROM progetti WHERE id = ?");
     $stmt->bind_param("i", $progetto_id);
     $stmt->execute();
-    $stmt->close();
-} else {
-    echo "Errore nell'eliminazione del progetto: " . $conn->error;
-    exit;
-}
+    $result = $stmt->get_result();
+    $progetto = $result->fetch_assoc();
 
-// Reindirizza alla pagina precedente dopo l'eliminazione
-header("Location: master_progetti.php?azienda_id=" . $_GET['azienda_id'] . "&linea_prodotto_id=" . $_GET['linea_prodotto_id']);
-exit;
+    if ($progetto) {
+        $immagine = $progetto['immagine'];
+
+        // Elimina l'immagine dal filesystem, se esiste
+        if (file_exists($immagine)) {
+            unlink($immagine);
+        }
+    }
+
+    // 1. Elimina le associazioni nella tabella progetti_componenti per questo progetto
+    $stmt = $conn->prepare("DELETE FROM progetti_componenti WHERE progetto_id = ?");
+    $stmt->bind_param("i", $progetto_id);
+    $stmt->execute();
+
+    // 2. Elimina le checklist associate ai componenti del progetto
+    // Prima dobbiamo recuperare le checklist associate a questo progetto
+    $checklist_stmt = $conn->prepare("SELECT id FROM checklist WHERE progetto_id = ?");
+    $checklist_stmt->bind_param("i", $progetto_id);
+    $checklist_stmt->execute();
+    $checklists = $checklist_stmt->get_result();
+
+    while ($checklist = $checklists->fetch_assoc()) {
+        $checklist_id = $checklist['id'];
+
+        // Elimina le risposte associate alle checklist
+        $delete_responses_stmt = $conn->prepare("DELETE FROM risposte WHERE checklist_id = ?");
+        $delete_responses_stmt->bind_param("i", $checklist_id);
+        $delete_responses_stmt->execute();
+
+        // Elimina le domande associate alle checklist
+        $delete_questions_stmt = $conn->prepare("DELETE FROM domande WHERE checklist_id = ?");
+        $delete_questions_stmt->bind_param("i", $checklist_id);
+        $delete_questions_stmt->execute();
+
+        // Elimina la checklist stessa
+        $delete_checklist_stmt = $conn->prepare("DELETE FROM checklist WHERE id = ?");
+        $delete_checklist_stmt->bind_param("i", $checklist_id);
+        $delete_checklist_stmt->execute();
+    }
+
+    // 3. Elimina il progetto dalla tabella progetti
+    $stmt = $conn->prepare("DELETE FROM progetti WHERE id = ?");
+    $stmt->bind_param("i", $progetto_id);
+    $stmt->execute();
+
+    // Commit delle operazioni
+    $conn->commit();
+
+    // Reindirizza l'utente alla pagina dei progetti
+    header("Location: master_progetti.php?azienda_id=$azienda_id&linea_prodotto_id=$linea_prodotto_id");
+    exit;
+} catch (Exception $e) {
+    // In caso di errore, rollback delle operazioni
+    $conn->rollback();
+    echo "Errore durante l'eliminazione del progetto: " . $e->getMessage();
+}
 ?>
