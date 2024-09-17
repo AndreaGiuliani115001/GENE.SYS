@@ -53,6 +53,18 @@ if ($result->num_rows === 0) {
     footer {
         padding: 20px;
     }
+
+    /* Stile personalizzato per le card */
+    .card {
+        border: none; /* Rimuove il bordo */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Aggiunge un'ombra personalizzata */
+    }
+
+    .card-img-top {
+        border-top-left-radius: 8px; /* Mantiene gli angoli arrotondati */
+        border-top-right-radius: 8px;
+    }
+
 </style>
 
 
@@ -64,7 +76,7 @@ if ($result->num_rows === 0) {
         <?php if ($_SESSION['ruolo'] == 'master'): ?>
             <div class="text-end mb-4">
                 <a href="aggiungi_progetto.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                   class="btn btn-primary ">Aggiungi Progetto</a>
+                   class="btn btn-outline-primary btn-rounded"><i class="fas fa-plus"></i></a>
             </div>
         <?php endif; ?>
 
@@ -87,11 +99,12 @@ if ($result->num_rows === 0) {
                                 <strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
                             </p>
                             <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>"
-                               class="btn btn-outline-primary btn-rounded">Visualizza Progetto</a>
+                               class="btn btn-primary btn-rounded"><i class="fas fa-eye"></i>
+                            </a>
                             <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                                class="btn btn-danger btn-rounded"
                                onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');">
-                                Elimina Progetto
+                                <i class="fas fa-trash"></i>
                             </a>
 
                         </div>

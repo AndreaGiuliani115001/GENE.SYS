@@ -52,7 +52,8 @@ $linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = 
             <?php while ($row = $linee_prodotti->fetch_assoc()): ?>
                 <li class="list-group-item">
                     <?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?>
-                    <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $row['id'] ?>" class="btn btn-primary btn-sm float-end btn-rounded">Visualizza Progetti</a>
+                    <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $row['id'] ?>" class="btn btn-primary btn-sm float-end btn-rounded"><i class="fas fa-folder"></i>
+                         Progetti</a>
                 </li>
             <?php endwhile; ?>
         </ul>

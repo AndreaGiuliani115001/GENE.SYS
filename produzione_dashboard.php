@@ -51,7 +51,6 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
 
     .details-block {
         text-align: left;
-        border: 2px solid #27bcbc;
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
@@ -103,16 +102,6 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
 <div class="full-screen-container">
     <div class="container mt-5">
         <div class="row align-items-center">
-            <!-- Dettagli del progetto -->
-            <div class="col-md-6 mb-4">
-                <div class="details-block">
-                    <h3><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h3>
-                    <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
-                    </p>
-                </div>
-            </div>
 
             <!-- Immagine del progetto -->
             <div class="col-md-6 mb-4">
@@ -121,15 +110,29 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
                          alt="Immagine del progetto">
                 </div>
             </div>
+
+            <!-- Dettagli del progetto -->
+            <div class="col-md-6 mb-4">
+
+                <div class="details-block shadow-sm">
+                    <h3><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h3>
+                    <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+                    <div class="department-block">
+                        <a class="btn btn-primary btn-rounded"
+                           href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>"><i class="fas fa-tools"></i>
+                            Fiberglass Department</a>
+                        <a class="btn btn-primary btn-rounded"
+                           href="outfitting_department.php?progetto_id=<?= $progetto_id ?>"><i class="fas fa-couch"></i>
+                            Outfitting Department</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Sezione Dipartimenti -->
-        <div class="department-block">
-            <a class="btn btn-outline-primary btn-rounded"
-               href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>">Fiberglass Department</a>
-            <a class="btn btn-outline-primary btn-rounded"
-               href="outfitting_department.php?progetto_id=<?= $progetto_id ?>">Outfitting Department</a>
-        </div>
     </div>
 </div>
 

@@ -1,5 +1,4 @@
 <?php
-
 include 'navbar.php';
 
 /** @var mysqli $conn */
@@ -79,29 +78,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<div class="container mt-5">
-    <h2>Crea un nuovo progetto per l'azienda</h2>
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
 
-    <form method="post" enctype="multipart/form-data">
-        <div class="mb-3">
-            <label for="cin" class="form-label">CIN</label>
-            <input type="text" class="form-control" id="cin" name="cin" required>
-        </div>
-        <div class="mb-3">
-            <label for="state" class="form-label">Stato</label>
-            <input type="text" class="form-control" id="state" name="state" required>
-        </div>
-        <div class="mb-3">
-            <label for="delivery" class="form-label">Data di consegna</label>
-            <input type="date" class="form-control" id="delivery" name="delivery" required>
-        </div>
-        <div class="mb-3">
-            <label for="immagine" class="form-label">Immagine del progetto</label>
-            <input type="file" class="form-control" id="immagine" name="immagine">
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Crea Progetto</button>
-    </form>
+    .full-screen-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 100vh;
+    }
+
+    .container {
+        flex-grow: 1;
+    }
+
+    footer {
+        background-color: #343a40;
+        color: white;
+        padding: 20px;
+    }
+
+    .btn-rounded {
+        border-radius: 50px;
+    }
+</style>
+
+<div class="full-screen-container">
+    <div class="container mt-5">
+        <h2>Crea un nuovo progetto per l'azienda</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="cin" class="form-label">CIN</label>
+                <input type="text" class="form-control" id="cin" name="cin" required>
+            </div>
+            <div class="mb-3">
+                <label for="state" class="form-label">Stato</label>
+                <input type="text" class="form-control" id="state" name="state" required>
+            </div>
+            <div class="mb-3">
+                <label for="delivery" class="form-label">Data di consegna</label>
+                <input type="date" class="form-control" id="delivery" name="delivery" required>
+            </div>
+            <div class="mb-3">
+                <label for="immagine" class="form-label">Immagine del progetto</label>
+                <input type="file" class="form-control" id="immagine" name="immagine">
+            </div>
+            <button type="submit" class="btn btn-primary w-100 btn-rounded">Crea Progetto</button>
+        </form>
+    </div>
+
+    <footer class="bg-white text-black text-center py-3">
+        &copy; 2024 GENE.SYS. Tutti i diritti riservati.
+    </footer>
 </div>
-
 </body>
 </html>

@@ -50,7 +50,6 @@ $installazioni = $man_stmt->get_result();
     }
 
     .details-block {
-        border: 2px solid #27bcbc;
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
@@ -86,7 +85,7 @@ $installazioni = $man_stmt->get_result();
 <div class="full-screen-container">
     <div class="container mt-5">
         <!-- Blocco Dettagli -->
-        <div class="details-block">
+        <div class="details-block shadow-sm">
             <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') ?></h3>
             <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -107,12 +106,12 @@ $installazioni = $man_stmt->get_result();
             <?php while ($installazione = $installazioni->fetch_assoc()): ?>
                 <tr>
                     <td><a href="#"
-                           class="btn btn-outline-primary table-btn"><?= htmlspecialchars($installazione['installation_name'], ENT_QUOTES, 'UTF-8') ?></a>
+                           class="btn btn-outline-primary table-btn btn-rounded"><?= htmlspecialchars($installazione['installation_name'], ENT_QUOTES, 'UTF-8') ?></a>
                     </td>
                     <td><?= htmlspecialchars($installazione['status'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($installazione['next_check'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><a href="<?= htmlspecialchars($installazione['checklist_url'], ENT_QUOTES, 'UTF-8') ?>"
-                           class="btn btn-sm btn-primary">Checklist</a></td>
+                           class="btn  btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i></a></td>
                 </tr>
             <?php endwhile; ?>
             </tbody>
@@ -120,12 +119,15 @@ $installazioni = $man_stmt->get_result();
 
         <!-- Sezione Supporto -->
         <div class="support-buttons">
-            <a href="#" class="btn btn-outline-primary">Technical Drawing</a>
-            <a href="#" class="btn btn-outline-primary">Print Status Checklist</a>
+            <a href="#" class="btn btn-primary"><i class="fas fa-drafting-compass"></i>
+                 Technical Drawing</a>
+            <a href="#" class="btn btn-primary"><i class="fas fa-print"></i>
+                 Print Status Checklist</a>
         </div>
 
         <!-- Pulsante Historical -->
-        <a href="#" class="btn btn-secondary mt-4">Historical</a>
+        <a href="#" class="btn btn-outline-primary mt-4"><i class="fas fa-history"></i>
+             Historical</a>
     </div>
 
     <!-- Footer -->

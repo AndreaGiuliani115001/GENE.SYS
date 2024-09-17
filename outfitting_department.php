@@ -42,11 +42,9 @@ $progetto = $stmt->get_result()->fetch_assoc();
     }
 
     .details-block {
-        border: 2px solid #27bcbc;
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        background-color: #f5f5f5;
     }
 
     .project-image {
@@ -93,7 +91,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
 <div class="full-screen-container">
     <div class="container">
         <!-- Blocco Dettagli -->
-        <div class="details-block">
+        <div class="details-block shadow-sm">
             <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') ?></h3>
             <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -107,9 +105,9 @@ $progetto = $stmt->get_result()->fetch_assoc();
 
         <!-- Blocco Azioni -->
         <div class="action-buttons">
-            <a href="outdoor_setup.php?progetto_id=<?= $progetto_id ?>" class="btn btn-outline-primary">Outdoor
+            <a href="outdoor_setup.php?progetto_id=<?= $progetto_id ?>" class="btn btn-primary">Outdoor
                 Setup</a>
-            <a href="indoor_setup.php?progetto_id=<?= $progetto_id ?>" class="btn btn-outline-primary">Indoor Setup</a>
+            <a href="indoor_setup.php?progetto_id=<?= $progetto_id ?>" class="btn btn-primary">Indoor Setup</a>
         </div>
     </div>
 </div>

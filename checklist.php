@@ -107,11 +107,11 @@ $domande = $domande_stmt->get_result();
             <input type="hidden" name="componente_id" value="<?= $componente_id ?>">
             <input type="hidden" name="progetto_id" value="<?= $progetto_id ?>">
             <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
-            <button type="submit" class="btn btn-primary w-100">Salva Risposte</button>
+            <button type="submit" class="btn btn-primary w-100 btn-rounded">Salva Risposte</button>
         </form>
     </div>
 
-    <footer class="bg-dark text-white text-center py-3">
+    <footer class="bg-white text-black text-center py-3">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>

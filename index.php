@@ -1,3 +1,5 @@
+<?php include 'navbar.php'; ?>
+
 <style>
     /* Imposta altezza e larghezza del 100% su html e body */
     html, body {
@@ -20,10 +22,17 @@
         padding: 20px;
     }
 
+    .card .fas, .card .fa {
+        color: #27bcbc !important;
+    }
+
+    .card {
+        border: none; /* Rimuove il bordo */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Aggiunge un'ombra personalizzata */
+    }
+
+
 </style>
-
-
-<?php include 'navbar.php'; ?>
 
 
 <!-- Main Content -->
@@ -38,7 +47,13 @@
                     manutentivi
                     che caratterizzano tutta la vita di un manufatto.
                 </p>
-                <a href="login.php" class="btn btn-primary btn-rounded">Accedi al Sistema</a>
+                <?php if (!isset($_SESSION['username'])): ?>
+                    <!-- Bottone per accedere al sistema (mostrato se l'utente NON è loggato) -->
+                    <a href="login.php" class="btn btn-primary btn-rounded">Accedi al Sistema</a>
+                <?php else: ?>
+                    <!-- Bottone per tornare alla dashboard (mostrato se l'utente è loggato) -->
+                    <a href="master_dashboard.php" class="btn btn-primary btn-rounded">Torna alla Dashboard</a>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -48,7 +63,7 @@
             <div class="col-md-4">
                 <div class="card text-center mb-4" style="border-radius: 10px;">
                     <div class="card-body">
-                        <i class="fas fa-cogs fa-3x mb-3 text-primary"></i> <!-- Icona Produzione -->
+                        <i class="fas fa-cogs fa-3x mb-3"></i> <!-- Icona Produzione -->
                         <h5 class="card-title">Produzione</h5>
                     </div>
                 </div>
@@ -58,7 +73,7 @@
             <div class="col-md-4">
                 <div class="card text-center mb-4" style="border-radius: 10px;">
                     <div class="card-body">
-                        <i class="fas fa-wrench fa-3x mb-3 text-primary"></i> <!-- Icona Manutenzione -->
+                        <i class="fas fa-wrench fa-3x mb-3"></i> <!-- Icona Manutenzione -->
                         <h5 class="card-title">Manutenzione</h5>
                     </div>
                 </div>
@@ -68,7 +83,7 @@
             <div class="col-md-4">
                 <div class="card text-center mb-4" style="border-radius: 10px;">
                     <div class="card-body">
-                        <i class="fas fa-leaf fa-3x mb-3 text-primary"></i> <!-- Icona Sostenibilità -->
+                        <i class="fas fa-leaf fa-3x mb-3"></i> <!-- Icona Sostenibilità -->
                         <h5 class="card-title">Sostenibilità</h5>
                     </div>
                 </div>

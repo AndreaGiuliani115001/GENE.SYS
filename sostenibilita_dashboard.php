@@ -50,7 +50,6 @@ $sostenibilita = $sost_stmt->get_result();
         }
 
         .details-block {
-            border: 2px solid #27bcbc;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -80,7 +79,7 @@ $sostenibilita = $sost_stmt->get_result();
 <div class="full-screen-container">
     <div class="container mt-5">
         <!-- Blocco Dettagli -->
-        <div class="details-block">
+        <div class="details-block shadow-sm">
             <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') ?></h3>
             <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -112,7 +111,7 @@ $sostenibilita = $sost_stmt->get_result();
         </table>
 
         <!-- Pulsante per tornare indietro -->
-        <a href="dashboard_progetto.php?progetto_id=<?= $progetto_id ?>" class="btn btn-secondary mt-4">Torna alla Dashboard Progetto</a>
+        <a href="dashboard_progetto.php?progetto_id=<?= $progetto_id ?>" class="btn btn-outline-primary btn-rounded mt-4">Torna alla Dashboard Progetto</a>
     </div>
 
     <!-- Footer -->

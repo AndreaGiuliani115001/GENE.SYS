@@ -59,11 +59,12 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
     .dashboard-block {
         text-align: center;
         padding: 20px;
-        border: 1px solid #ddd;
         border-radius: 10px;
         background-color: white;
         transition: background-color 0.3s;
         margin-bottom: 20px;
+        border: none; /* Rimuove il bordo */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Aggiunge un'ombra personalizzata */
     }
 
     .dashboard-block:hover {
@@ -90,6 +91,9 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
         color: white;
         padding: 20px;
     }
+
+
+
 </style>
 
 <div class="full-screen-container">

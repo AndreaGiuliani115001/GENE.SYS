@@ -12,10 +12,16 @@ session_start();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Includi FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 
     <style>
         body {
             background-color: #f5f6fc;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        h1, h2, h3, p {
+            font-family: 'Roboto', sans-serif;
         }
 
         .navbar {
@@ -62,9 +68,7 @@ session_start();
             border-color: #117a8b;
         }
 
-        .card .fas, .card .fa {
-            color: #27bcbc !important;
-        }
+
     </style>
 
 </head>
@@ -81,31 +85,38 @@ session_start();
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="https://www.p2msrl.it">P2M</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://www.p2msrl.it/about_us">About Us</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://www.p2msrl.it/gene-sys">GENE.SYS</a>
-                </li>
 
                 <!-- Verifica se l'utente è loggato -->
                 <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true): ?>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-outline-primary btn-rounded" href="master_dashboard.php">Dashboard</a>
+                        <a class="nav-link"
+                           href="master_dashboard.php"><i class="fas fa-home"></i>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-outline-primary btn-rounded" href="logout.php">Logout</a>
-                    </li>
-                    <li class="nav-item">
-                        <span class="nav-link">Benvenuto, <?= htmlspecialchars($_SESSION['username']); ?>!</span>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Benvenuto, <?= htmlspecialchars($_SESSION['username']); ?>! <i class="fas fa-user-circle"></i>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="profile.php">Profilo</a></li>
+                            <li><a class="dropdown-item" href="settings.php">Impostazioni</a></li>
+                            <li><a class="dropdown-item" href="logout.php">Logout</a></li>
+                        </ul>
                     </li>
                 <?php else: ?>
                     <li class="nav-item">
                         <a class="nav-link btn btn-outline-primary btn-rounded" href="login.php">Login</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.p2msrl.it">P2M</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.p2msrl.it/about_us">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://www.p2msrl.it/gene-sys">GENE.SYS</a>
+                    </li>
+
                 <?php endif; ?>
             </ul>
         </div>

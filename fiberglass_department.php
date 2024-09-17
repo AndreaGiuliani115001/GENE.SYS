@@ -44,7 +44,6 @@ $progetto = $stmt->get_result()->fetch_assoc();
     }
 
     .details-block {
-        border: 2px solid #27bcbc;
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
@@ -127,11 +126,10 @@ $progetto = $stmt->get_result()->fetch_assoc();
 <div class="full-screen-container">
     <div class="container">
         <!-- Blocco Dettagli -->
-        <div class="details-block">
+        <div class="details-block shadow-sm">
             <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') . " #" . $progetto_id ?></h3>
             <!-- Blocco Progresso -->
             <div class="progress-block">
-                <h4>Avanzamento</h4>
                 <div class="progress-bar">
                     <div></div>
                 </div>
@@ -139,20 +137,17 @@ $progetto = $stmt->get_result()->fetch_assoc();
             <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
-            <a href="checklist.php?progetto_id=<?= $progetto_id ?>&componente=Secondari"
-               class="btn btn-primary">Verifica materiale</a>
+            <div class="action-buttons">
+                <a href="checklist.php?progetto_id=<?= $progetto_id ?>&componente=Secondari"
+                   class="btn btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i> Verifica materiale</a>
+                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=scafo"
+                   class="btn btn-outline-primary"><i class="fas fa-ship"></i> Scafo completo</a>
+                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=coperta"
+                   class="btn btn-outline-primary"><i class="fas fa-layer-group"></i> Coperta completa</a>
+                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=secondari"
+                   class="btn btn-outline-primary"><i class="fas fa-cogs"></i> Secondari</a>
+            </div>
         </div>
-
-        <!-- Blocco Azioni -->
-        <div class="action-buttons">
-            <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=scafo"
-               class="btn btn-outline-primary">Scafo completo</a>
-            <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=coperta"
-               class="btn btn-outline-primary">Coperta completa</a>
-            <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=secondari"
-               class="btn btn-outline-primary">Secondari</a>
-        </div>
-
     </div>
 </div>
 

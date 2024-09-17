@@ -65,7 +65,7 @@ $componenti = $componente_principale_stmt->get_result();
 
 <div class="full-screen-container">
     <div class="container mt-5">
-        <h2>Componenti per <?php echo ucfirst($componente); ?></h2>
+        <h2>Componenti per <?php echo ucfirst($componente); ?></h2><br>
 
         <!-- Lista dei componenti e sottocomponenti -->
         <ul class="list-group">
@@ -74,13 +74,14 @@ $componenti = $componente_principale_stmt->get_result();
                     <strong><?= htmlspecialchars($comp['nome'], ENT_QUOTES, 'UTF-8') ?></strong>
                     <p><?= htmlspecialchars($comp['descrizione'], ENT_QUOTES, 'UTF-8') ?></p>
                     <a href="checklist.php?componente_id=<?= $comp['id'] ?>&progetto_id=<?= $progetto_id ?>"
-                       class="btn btn-sm btn-outline-primary btn-rounded">Visualizza Checklist</a>
+                       class="btn  btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i>
+                     Visualizza checklist</a>
                 </li>
             <?php endwhile; ?>
         </ul>
 
         <!-- Pulsante per tornare indietro -->
-        <a href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>" class="btn btn-primary mt-4">Torna al Fiberglass Department</a>
+        <a href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>" class="btn btn-outline-primary mt-4 btn-rounded">Torna al Fiberglass Department</a>
     </div>
 
     <!-- Footer -->
