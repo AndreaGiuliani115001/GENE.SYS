@@ -1,7 +1,5 @@
 <?php
 include 'navbar.php';
-
-/** @var mysqli $conn */
 include('connection.php');
 
 // Verifica se l'utente è un Master
@@ -14,56 +12,78 @@ $azienda_id = $_GET['azienda_id'];
 
 // Recupera il cliente e le sue linee di prodotto
 $cliente = $conn->query("SELECT * FROM aziende WHERE id = $azienda_id")->fetch_assoc();
-$linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = $azienda_id");
+$linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = $azienda_id ORDER BY nome ASC");
+
 ?>
 
 <style>
-    /* Imposta altezza e larghezza del 100% su html e body */
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
-
-    /* Imposta il contenitore principale per occupare tutto lo schermo */
+    /* Stile per il contenitore principale a schermo intero */
     .full-screen-container {
         display: flex;
         flex-direction: column;
-        justify-content: space-between; /* Distribuisce il contenuto tra header e footer */
-        min-height: 100vh; /* Occupazione dell'intero viewport */
+        justify-content: space-between;
+        min-height: 100vh;
     }
 
     .container {
-        flex-grow: 1; /* Permette al contenitore di crescere e riempire lo spazio disponibile */
+        flex-grow: 1;
     }
 
-    /* Stile per il footer per mantenerlo in fondo alla pagina */
     footer {
         background-color: #343a40;
         color: white;
         padding: 20px;
     }
+
+    /* Lista delle linee di prodotto */
+    .product-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-gap: 20px;
+        margin-top: 20px;
+    }
+
+    .product-card {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        text-align: center;
+    }
+
+    .product-card h5 {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    .product-card .btn {
+        margin-top: 10px;
+    }
+
 </style>
 
 <div class="full-screen-container">
     <!-- Main Content -->
     <div class="container mt-5">
         <h2 class="mb-4">Linee di Prodotto per <?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?></h2>
-        <ul class="list-group">
+
+        <!-- Lista delle linee di prodotto -->
+        <div class="product-list">
             <?php while ($row = $linee_prodotti->fetch_assoc()): ?>
-                <li class="list-group-item">
-                    <?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?>
-                    <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $row['id'] ?>" class="btn btn-primary btn-sm float-end btn-rounded"><i class="fas fa-folder"></i>
-                         Progetti</a>
-                </li>
+                <div class="product-card">
+                    <h5><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
+                    <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $row['id'] ?>"
+                       class="btn btn-primary btn-rounded"><i class="fas fa-folder"></i> Progetti</a>
+                </div>
             <?php endwhile; ?>
-        </ul>
+        </div>
+        <!-- Pulsante per tornare alla dashboard -->
+        <a href="master_dashboard.php" class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-left"></i> Torna alla Dashboard</a>
+
     </div>
 
     <!-- Footer -->
-    <footer class="bg-white text-black text-center">
+    <footer class="text-center text-black bg-white mt-4">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>
-
-</body>
-</html>

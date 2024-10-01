@@ -129,6 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <button type="submit" class="btn btn-primary w-100 btn-rounded">Crea Progetto</button>
         </form>
+
+        <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-outline-primary mt-4">
+            <i class="fas fa-arrow-left"></i> Torna alla lista dei progetti
+        </a>
     </div>
 
     <footer class="bg-white text-black text-center py-3">

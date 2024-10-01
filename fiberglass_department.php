@@ -13,6 +13,12 @@ if (!isset($_SESSION['ruolo'])) {
 // Recupera l'ID del progetto dalla query string
 $progetto_id = $_GET['progetto_id'];
 
+// Recupera l'ID dell'azienda dalla query string
+$azienda_id = $_GET['azienda_id'];
+
+// Recupera l'ID della linea di prodotto dalla query string
+$linea_prodotto_id = $_GET['linea_prodotto_id'];
+
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
     SELECT p.cin, p.state, p.delivery, p.immagine,
@@ -138,16 +144,19 @@ $progetto = $stmt->get_result()->fetch_assoc();
             <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
             <div class="action-buttons">
-                <a href="checklist.php?progetto_id=<?= $progetto_id ?>&componente=Secondari"
+                <a href="checklist.php?progetto_id=<?= $progetto_id ?>&componente=Secondari&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                    class="btn btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i> Verifica materiale</a>
-                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=scafo"
+                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=scafo&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                    class="btn btn-outline-primary"><i class="fas fa-ship"></i> Scafo completo</a>
-                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=coperta"
+                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=coperta&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                    class="btn btn-outline-primary"><i class="fas fa-layer-group"></i> Coperta completa</a>
-                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=secondari"
+                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=secondari&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                    class="btn btn-outline-primary"><i class="fas fa-cogs"></i> Secondari</a>
             </div>
         </div>
+        <a href="produzione_dashboard.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-outline-primary mt-4">
+            <i class="fas fa-arrow-left"></i> Torna Alla Dashboard Produzione
+        </a>
     </div>
 </div>
 

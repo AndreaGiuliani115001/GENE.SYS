@@ -65,6 +65,22 @@ if ($result->num_rows === 0) {
         border-top-right-radius: 8px;
     }
 
+    .progress-block {
+        margin: 30px 0;
+    }
+
+    .progress-bar {
+        width: 100%;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .progress-bar div {
+        background-color: #27bcbc;
+        height: 30px;
+    }
+
 </style>
 
 
@@ -76,7 +92,7 @@ if ($result->num_rows === 0) {
         <?php if ($_SESSION['ruolo'] == 'master'): ?>
             <div class="text-end mb-4">
                 <a href="aggiungi_progetto.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                   class="btn btn-outline-primary btn-rounded"><i class="fas fa-plus"></i></a>
+                   class="btn btn-primary btn-rounded "><i class="fas fa-plus"></i></a>
             </div>
         <?php endif; ?>
 
@@ -89,16 +105,22 @@ if ($result->num_rows === 0) {
                         <img src="<?= htmlspecialchars($progetto['immagine'], ENT_QUOTES, 'UTF-8') ?>"
                              class="card-img-top" alt="Progetto">
                         <div class="card-body">
-                            <h5 class="card-title"><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h5>
+                            <h5 class="card-title mb-4"><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h5>
                             <p class="card-text">
                                 <strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
                             <p class="card-text">
-                                <strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?>
+                                <strong>Stato:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?>
                             </p>
                             <p class="card-text">
-                                <strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
+                                <strong>Consegna:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
                             </p>
-                            <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>"
+                            <!-- Blocco Progresso -->
+                            <div class="progress-block">
+                                <div class="progress-bar">
+                                    <div></div>
+                                </div>
+                            </div>
+                            <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                                class="btn btn-primary btn-rounded"><i class="fas fa-eye"></i>
                             </a>
                             <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
@@ -112,10 +134,14 @@ if ($result->num_rows === 0) {
                 </div>
             <?php endwhile; ?>
         </div>
+        <a href="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>" class="btn btn-outline-primary mt-3">
+            <i class="fas fa-arrow-left"></i> Torna alle Linee di Prodotto
+        </a>
+
     </div>
 
     <!-- Footer -->
-    <footer class="bg-white text-black text-center">
+    <footer class="bg-white text-black text-center mt-4">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>

@@ -45,6 +45,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
+        background-color: white;
     }
 
     .project-image {

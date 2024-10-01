@@ -13,6 +13,12 @@ if (!isset($_SESSION['ruolo'])) {
 // Recupera l'ID del progetto dalla query string
 $progetto_id = $_GET['progetto_id'];
 
+// Recupera l'ID dell'azienda dalla query string
+$azienda_id = $_GET['azienda_id'];
+
+// Recupera l'ID della linea di prodotto dalla query string
+$linea_prodotto_id = $_GET['linea_prodotto_id'];
+
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
     SELECT p.cin, p.state, p.delivery, p.immagine, 
@@ -103,7 +109,7 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
 
         <!-- Blocco Produzione -->
         <div class="dashboard-block">
-            <a href="produzione_dashboard.php?progetto_id=<?= $progetto_id ?>">
+            <a href="produzione_dashboard.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>">
                 <div class="dashboard-icon">
                     <i class="fas fa-cogs"></i>
                 </div>
@@ -114,7 +120,7 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
 
         <!-- Blocco Manutenzione -->
         <div class="dashboard-block">
-            <a href="manutenzione_dashboard.php?progetto_id=<?= $progetto_id ?>">
+            <a href="manutenzione_dashboard.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>">
                 <div class="dashboard-icon">
                     <i class="fas fa-wrench"></i>
                 </div>
@@ -125,7 +131,7 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
 
         <!-- Blocco Sostenibilità -->
         <div class="dashboard-block">
-            <a href="sostenibilita_dashboard.php?progetto_id=<?= $progetto_id ?>">
+            <a href="sostenibilita_dashboard.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>">
                 <div class="dashboard-icon">
                     <i class="fas fa-leaf"></i>
                 </div>
@@ -133,10 +139,15 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
                 <p>Visualizza i dettagli di sostenibilità del progetto</p>
             </a>
         </div>
+
+        <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-outline-primary mt-4">
+            <i class="fas fa-arrow-left"></i> Torna alla lista dei progetti
+        </a>
+
     </div>
 
     <!-- Footer -->
-    <footer class="bg-white text-black text-center py-3 mt-5">
+    <footer class="bg-white text-black text-center py-3 mt-4">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>

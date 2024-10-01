@@ -13,6 +13,12 @@ if (!isset($_SESSION['ruolo'])) {
 // Recupera l'ID del progetto dalla query string
 $progetto_id = $_GET['progetto_id'];
 
+// Recupera l'ID dell'azienda dalla query string
+$azienda_id = $_GET['azienda_id'];
+
+// Recupera l'ID della linea di prodotto dalla query string
+$linea_prodotto_id = $_GET['linea_prodotto_id'];
+
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
     SELECT p.cin, p.state, p.delivery, p.immagine,
@@ -112,7 +118,7 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
             </div>
 
             <!-- Dettagli del progetto -->
-            <div class="col-md-6 mb-4">
+            <div class="col-md-6 ">
 
                 <div class="details-block shadow-sm">
                     <h3><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h3>
@@ -122,23 +128,27 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
                     </p>
                     <div class="department-block">
                         <a class="btn btn-primary btn-rounded"
-                           href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>"><i class="fas fa-tools"></i>
+                           href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"><i class="fas fa-tools"></i>
                             Fiberglass Department</a>
                         <a class="btn btn-primary btn-rounded"
-                           href="outfitting_department.php?progetto_id=<?= $progetto_id ?>"><i class="fas fa-couch"></i>
+                           href="outfitting_department.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"><i class="fas fa-couch"></i>
                             Outfitting Department</a>
                     </div>
                 </div>
             </div>
 
+
         </div>
+        <a href="dashboard_progetto.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Torna alle fasi
+        </a>
 
     </div>
 </div>
 
 
 <!-- Footer -->
-<footer class="bg-white text-black text-center py-3">
+<footer class="bg-white text-black text-center py-3 mt-4">
     &copy; 2024 GENE.SYS. Tutti i diritti riservati.
 </footer>
 
