@@ -2,42 +2,60 @@
 include 'navbar.php';
 include('connection.php');
 
+
 // Verifica se l'utente è loggato
 if (!isset($_SESSION['ruolo'])) {
     header("Location: login.php");
     exit;
 }
 
-// Recupera l'ID del componente e del progetto dalla query string
-$componente_id = $_GET['componente_id'];
-$componente = $_GET['componente'];
+// Recupera l'ID del componente/intervento e del progetto dalla query string
+$componente_id = $_GET['componente_id'] ?? null;
+$attivita_id = $_GET['attivita_id'] ?? null;  // Se si tratta di una attività di manutenzione
 $progetto_id = $_GET['progetto_id'];
 $azienda_id = $_GET['azienda_id'];
 $linea_prodotto_id = $_GET['linea_prodotto_id'];
+$tipo = $_GET['tipo'] ?? 'produzione';  // Specifica se è produzione o manutenzione (default 'produzione')
 
-// Recupera i dettagli della checklist con il componente_id e il progetto_id
-$checklist_stmt = $conn->prepare("
-    SELECT id, nome, descrizione 
-    FROM checklist 
-    WHERE componente_id = ? AND progetto_id = ?");
-$checklist_stmt->bind_param("ii", $componente_id, $progetto_id);
+// Recupera la checklist in base al componente o attività
+if ($tipo === 'produzione') {
+    // Query per la produzione (componenti)
+    $checklist_stmt = $conn->prepare("
+        SELECT c.id, c.nome, c.descrizione 
+        FROM checklist c
+        JOIN checklist_componenti cc ON c.id = cc.checklist_id
+        WHERE cc.componente_id = ? AND cc.progetto_id = ?");
+    $checklist_stmt->bind_param("ii", $componente_id, $progetto_id);
+} else {
+    // Query per la manutenzione (attività/interventi)
+    $checklist_stmt = $conn->prepare("
+        SELECT c.id, c.nome, c.descrizione 
+        FROM checklist c
+        JOIN checklist_attivita ca ON c.id = ca.checklist_id
+        WHERE ca.attivita_id = ? AND ca.progetto_id = ?");
+    $checklist_stmt->bind_param("ii", $attivita_id, $progetto_id);
+}
+
 $checklist_stmt->execute();
 $checklist = $checklist_stmt->get_result()->fetch_assoc();
 
 // Verifica se la checklist esiste
 if (!$checklist) {
-    die("Nessuna checklist trovata per questo componente e progetto.");
+    die("Nessuna checklist trovata per questo elemento.");
 }
 
-// Recupera le domande e le risposte (se esistenti)
-$domande_stmt = $conn->prepare("
-    SELECT d.id AS domanda_id, d.testo AS domanda_testo, d.tipo_contenuto, 
-           r.valore_testo AS risposta_testo, r.valore_data AS risposta_data, r.valore_media_url AS risposta_media_url 
-    FROM domande d
-    LEFT JOIN risposte r ON d.id = r.domanda_id AND r.checklist_id = ?
-    WHERE d.checklist_id = ?");
 $checklist_id = $checklist['id'];
-$domande_stmt->bind_param("ii", $checklist_id, $checklist_id);
+
+// Recupera le domande e le risposte per la checklist
+$domande_stmt = $conn->prepare("
+    SELECT d.id AS domanda_id, d.testo AS domanda_testo, d.tipo_contenuto,
+           r.valore_testo AS risposta_testo, r.valore_data AS risposta_data, r.valore_media_url AS risposta_media_url
+    FROM domande d
+    JOIN checklist_domande cd ON d.id = cd.domanda_id
+    LEFT JOIN domanda_risposte dr ON d.id = dr.domanda_id
+    LEFT JOIN risposte r ON dr.risposta_id = r.id
+    WHERE cd.checklist_id = ?");
+$domande_stmt->bind_param("i", $checklist_id);
 $domande_stmt->execute();
 $domande = $domande_stmt->get_result();
 ?>
@@ -65,21 +83,6 @@ $domande = $domande_stmt->get_result();
         padding: 20px;
     }
 
-    /* Stili per nascondere le domande */
-    .question-container {
-        display: none;
-    }
-
-    .question-container.active {
-        display: block;
-    }
-
-    .nav-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-    }
-
 </style>
 
 <div class="full-screen-container">
@@ -87,11 +90,10 @@ $domande = $domande_stmt->get_result();
         <h2><?= htmlspecialchars($checklist['nome'], ENT_QUOTES, 'UTF-8') ?></h2>
         <p><?= htmlspecialchars($checklist['descrizione'], ENT_QUOTES, 'UTF-8') ?></p>
 
-        <!-- Contenitore per le domande -->
+        <!-- Contenitore per le domande e risposte -->
         <form id="checklistForm" method="post" action="salva_risposte.php" enctype="multipart/form-data">
-            <?php $questionIndex = 0; ?>
             <?php while ($domanda = $domande->fetch_assoc()): ?>
-                <div class="question-container" id="question-<?= $questionIndex ?>" data-question-id="<?= $domanda['domanda_id'] ?>">
+                <div class="question-container mb-4">
                     <h5><?= htmlspecialchars($domanda['domanda_testo'], ENT_QUOTES, 'UTF-8') ?></h5>
 
                     <!-- Risposta alla domanda -->
@@ -110,72 +112,30 @@ $domande = $domande_stmt->get_result();
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
-                <?php $questionIndex++; ?>
             <?php endwhile; ?>
 
             <!-- Pulsante per salvare tutte le risposte -->
             <button type="submit" class="btn btn-primary w-100 mt-4 btn-rounded">Salva Risposte</button>
 
-            <input type="hidden" name="componente_id" value="<?= $componente_id ?>">
             <input type="hidden" name="progetto_id" value="<?= $progetto_id ?>">
+            <input type="hidden" name="azienda_id" value="<?= $azienda_id ?>">
+            <input type="hidden" name="linea_prodotto_id" value="<?= $linea_prodotto_id ?>">
+            <input type="hidden" name="componente_id" value="<?= $componente_id ?>">
+            <input type="hidden" name="attivita_id" value="<?= $attivita_id ?>">
+            <input type="hidden" name="tipo" value="<?= $tipo ?>">
             <input type="hidden" name="checklist_id" value="<?= $checklist_id ?>">
-
-            <!-- Pulsanti per navigare tra le domande -->
-            <div class="nav-buttons">
-                <button type="button" id="prevButton" class="btn btn-secondary btn-rounded" disabled><i class="fas fa-arrow-left"></i> Indietro</button>
-                <button type="button" id="nextButton" class="btn btn-primary btn-rounded"><i class="fas fa-arrow-right"></i> Avanti</button>
-            </div>
         </form>
 
-        <!-- Pulsante per tornare alla pagina componenti.php -->
-        <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente_id=<?= $componente_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>&componente=<?= $componente ?>"
+        <!-- Pulsante per tornare alla pagina componenti/attività -->
+        <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente_id=<?= $componente_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>&tipo=<?= $tipo ?>"
            class="btn btn-outline-primary mt-5">
-            <i class="fas fa-arrow-left"></i> Torna ai Componenti
+            <i class="fas fa-arrow-left"></i> Torna alla pagina precedente
         </a>
-
     </div>
-
-
 
     <footer class="bg-white text-black text-center py-3">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>
-
-<script>
-    let currentQuestionIndex = 0;
-    const totalQuestions = <?= $questionIndex ?>;
-
-    // Mostra la prima domanda non risolta
-    function showQuestion(index) {
-        // Nasconde tutte le domande
-        document.querySelectorAll('.question-container').forEach(container => container.classList.remove('active'));
-
-        // Mostra la domanda selezionata
-        document.getElementById('question-' + index).classList.add('active');
-
-        // Disabilita i pulsanti in base all'indice
-        document.getElementById('prevButton').disabled = (index === 0);
-        document.getElementById('nextButton').disabled = (index === totalQuestions - 1);
-    }
-
-    document.getElementById('prevButton').addEventListener('click', function() {
-        if (currentQuestionIndex > 0) {
-            currentQuestionIndex--;
-            showQuestion(currentQuestionIndex);
-        }
-    });
-
-    document.getElementById('nextButton').addEventListener('click', function() {
-        if (currentQuestionIndex < totalQuestions - 1) {
-            currentQuestionIndex++;
-            showQuestion(currentQuestionIndex);
-        }
-    });
-
-    // Mostra la prima domanda all'avvio
-    showQuestion(currentQuestionIndex);
-</script>
-
 </body>
 </html>

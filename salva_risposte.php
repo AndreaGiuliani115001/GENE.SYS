@@ -8,9 +8,18 @@ if (!isset($_SESSION['ruolo'])) {
     exit;
 }
 
+
+
 // Recupera le risposte dal form
 $checklist_id = $_POST['checklist_id'];
 $risposte = $_POST['risposte'];
+$componente_id = $_POST['componente_id'] ?? null;
+$attivita_id = $_POST['attivita_id'] ?? null;
+$progetto_id = $_POST['progetto_id'];
+$azienda_id = $_POST['azienda_id'];
+$linea_prodotto_id = $_POST['linea_prodotto_id'];
+$tipo = $_POST['tipo'] ?? 'produzione';
+
 
 // Ciclo attraverso le risposte
 foreach ($risposte as $domanda_id => $risposta) {
@@ -44,30 +53,43 @@ foreach ($risposte as $domanda_id => $risposta) {
         }
     }
 
-    // Verifica se esiste già una risposta per questa domanda e checklist
-    $stmt = $conn->prepare("SELECT id FROM risposte WHERE domanda_id = ? AND checklist_id = ?");
-    $stmt->bind_param("ii", $domanda_id, $checklist_id);
+    // Verifica se esiste già una risposta per questa domanda
+    $stmt = $conn->prepare("SELECT r.id FROM risposte r
+                            JOIN domanda_risposte dr ON r.id = dr.risposta_id
+                            WHERE dr.domanda_id = ?");
+    $stmt->bind_param("i", $domanda_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         // Se esiste una risposta, aggiornala
+        $risposta_row = $result->fetch_assoc();
+        $risposta_id = $risposta_row['id'];
+
         $update_stmt = $conn->prepare("
             UPDATE risposte 
             SET valore_testo = ?, valore_data = ?, valore_media_url = ? 
-            WHERE domanda_id = ? AND checklist_id = ?");
-        $update_stmt->bind_param("sssii", $valore_testo, $valore_data, $valore_media_url, $domanda_id, $checklist_id);
+            WHERE id = ?");
+        $update_stmt->bind_param("sssi", $valore_testo, $valore_data, $valore_media_url, $risposta_id);
         $update_stmt->execute();
     } else {
         // Se non esiste una risposta, inserisci una nuova risposta
         $insert_stmt = $conn->prepare("
-            INSERT INTO risposte (domanda_id, checklist_id, tipo_contenuto, valore_testo, valore_data, valore_media_url) 
-            VALUES (?, ?, ?, ?, ?, ?)");
-        $insert_stmt->bind_param("iissss", $domanda_id, $checklist_id, $tipo_contenuto, $valore_testo, $valore_data, $valore_media_url);
+            INSERT INTO risposte (tipo_contenuto, valore_testo, valore_data, valore_media_url) 
+            VALUES (?, ?, ?, ?)");
+        $insert_stmt->bind_param("ssss", $tipo_contenuto, $valore_testo, $valore_data, $valore_media_url);
         $insert_stmt->execute();
+        $risposta_id = $conn->insert_id;
+
+        // Collega la nuova risposta alla domanda nella tabella intermedia
+        $insert_rel_stmt = $conn->prepare("
+            INSERT INTO domanda_risposte (domanda_id, risposta_id) 
+            VALUES (?, ?)");
+        $insert_rel_stmt->bind_param("ii", $domanda_id, $risposta_id);
+        $insert_rel_stmt->execute();
     }
 }
 
 // Dopo il salvataggio, reindirizza alla pagina della checklist
-header("Location: checklist.php?componente_id=" . $_POST['componente_id'] . "&progetto_id=" . $_POST['progetto_id']);
+header("Location: checklist.php?componente_id=" . $componente_id . "&attivita_id=" . $attivita_id . "&progetto_id=" . $progetto_id . "&azienda_id=" . $azienda_id . "&linea_prodotto_id=" . $linea_prodotto_id . "&tipo=" . $tipo);
 exit;
