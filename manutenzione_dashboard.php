@@ -13,11 +13,24 @@ if (!isset($_SESSION['ruolo'])) {
     exit;
 }
 
-// Query per ottenere le macro-categorie
-$query = "SELECT id, nome FROM macro_categorie";
-$result = mysqli_query($conn, $query);
-?>
+// Recupera il campo operativo dell'azienda
+$stmt = $conn->prepare("
+    SELECT a.campo_operativo_id 
+    FROM aziende a 
+    JOIN progetti p ON a.id = p.azienda_id
+    WHERE p.id = ?");
+$stmt->bind_param("i", $progetto_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$campo_operativo = $result->fetch_assoc()['campo_operativo_id'];
 
+// Query per ottenere le macro-categorie specifiche per il campo operativo
+$query = "SELECT id, nome FROM macro_categorie WHERE campo_operativo_id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $campo_operativo);
+$stmt->execute();
+$result = $stmt->get_result();
+?>
 
 <style>
     html, body {
@@ -37,13 +50,12 @@ $result = mysqli_query($conn, $query);
         color: white;
         padding: 20px;
     }
-
 </style>
 
 <div class="full-screen-container">
     <div class="container mt-5">
         <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+            <?php while ($row = $result->fetch_assoc()): ?>
                 <div class="col-md-6 my-2">
                     <div class="card shadow-sm">
                         <div class="card-body">

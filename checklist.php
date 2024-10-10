@@ -34,6 +34,7 @@ if ($tipo === 'produzione') {
         JOIN checklist_attivita ca ON c.id = ca.checklist_id
         WHERE ca.attivita_id = ? AND ca.progetto_id = ?");
     $checklist_stmt->bind_param("ii", $attivita_id, $progetto_id);
+
 }
 
 $checklist_stmt->execute();

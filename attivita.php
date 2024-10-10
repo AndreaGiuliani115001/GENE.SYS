@@ -17,12 +17,17 @@ if (!isset($_SESSION['ruolo'])) {
 // Recupera il macro_id dalla query string
 $macro_id = $_GET['macro_id'];
 
-// Query per ottenere le attività
-$query = "SELECT id, nome FROM attivita WHERE macro_categoria_id = ?";
+// Query per ottenere le attività specifiche del progetto e della macro-categoria
+$query = "
+    SELECT a.id, a.nome 
+    FROM attivita a
+    JOIN progetti_attivita pa ON a.id = pa.attivita_id
+    WHERE a.macro_categoria_id = ? AND pa.progetto_id = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param('i', $macro_id);
+$stmt->bind_param('ii', $macro_id, $progetto_id);
 $stmt->execute();
 $result = $stmt->get_result();
+
 ?>
 
 <style>
@@ -54,7 +59,7 @@ $result = $stmt->get_result();
                     <div class="card shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
-                            <a href="checklist.php?attivita_id=<?= $row['id'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-primary btn-rounded">
+                            <a href="checklist.php?attivita_id=<?= $row['id'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>&tipo=manutenzione" class="btn btn-primary btn-rounded">
                                 <i class="fas fa-clipboard-list"></i> Vedi Checklist
                             </a>
                         </div>

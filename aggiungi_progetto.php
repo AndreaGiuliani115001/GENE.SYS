@@ -51,25 +51,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $progetto_id = $stmt->insert_id;
 
-    // Collega i componenti predefiniti (scafo, ragno, coperta, celini, secondari) al progetto
+    // Collega i componenti predefiniti (ID dei componenti)
     $componenti = [1, 2, 3, 4, 5]; // Id dei componenti (scafo, ragno, coperta, celini, secondari)
     foreach ($componenti as $componente_id) {
+        // Inserisci i componenti nel progetto
         $componente_stmt = $conn->prepare("
             INSERT INTO progetti_componenti (progetto_id, componente_id) 
             VALUES (?, ?)");
         $componente_stmt->bind_param("ii", $progetto_id, $componente_id);
         $componente_stmt->execute();
+
+        // Collega le checklist predefinite ai componenti
+        $checklist_stmt = $conn->prepare("
+            SELECT id, nome, descrizione 
+            FROM checklist 
+            WHERE `default` = 1 AND componente_id = ?");
+        $checklist_stmt->bind_param("i", $componente_id);
+        $checklist_stmt->execute();
+        $checklist_result = $checklist_stmt->get_result();
+
+        while ($checklist = $checklist_result->fetch_assoc()) {
+            // Duplica la checklist per il nuovo progetto
+            $new_checklist_stmt = $conn->prepare("
+                INSERT INTO checklist (nome, descrizione, componente_id, progetto_id) 
+                VALUES (?, ?, ?, ?)");
+            $new_checklist_stmt->bind_param("ssii", $checklist['nome'], $checklist['descrizione'], $componente_id, $progetto_id);
+            $new_checklist_stmt->execute();
+        }
     }
 
-    // Collega le checklist predefinite ai componenti
-    foreach ($componenti as $componente_id) {
-        $checklist_stmt = $conn->prepare("
-            INSERT INTO checklist (nome, descrizione, componente_id, progetto_id) 
-            VALUES (?, ?, ?, ?)");
-        $nome_checklist = "Checklist " . $componente_id;
-        $descrizione_checklist = "Checklist per il componente " . $componente_id;
-        $checklist_stmt->bind_param("ssii", $nome_checklist, $descrizione_checklist, $componente_id, $progetto_id);
-        $checklist_stmt->execute();
+    // Collega le attività predefinite (ID delle attività)
+    $attivita_predefinite = [1, 2, 3, 4, 5, 6, 7, 8]; // Sostituisci con gli ID delle attività corrette
+    foreach ($attivita_predefinite as $attivita_id) {
+        $attivita_stmt = $conn->prepare("
+            INSERT INTO progetti_attivita (progetto_id, attivita_id) 
+            VALUES (?, ?)");
+        $attivita_stmt->bind_param("ii", $progetto_id, $attivita_id);
+        $attivita_stmt->execute();
     }
 
     // Reindirizza alla pagina di visualizzazione dei progetti

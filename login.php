@@ -29,11 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Reindirizza in base al ruolo
             if ($ruolo == 'master') {
-                header("Location: master_dashboard.php");
+                if ($azienda_id === null) {
+                    header("Location: master_dashboard.php"); // Admin globale
+                } else {
+                    header("Location: ufficio_tecnico_dashboard.php"); // Admin aziendale
+                }
             } else if ($ruolo == 'operatore') {
                 header("Location: operatore_dashboard.php");
             }
             exit;
+
 
         } else {
             $error = "Credenziali errate.";
