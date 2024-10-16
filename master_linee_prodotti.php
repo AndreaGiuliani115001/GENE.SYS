@@ -2,17 +2,33 @@
 include 'navbar.php';
 include('connection.php');
 
-// Verifica se l'utente è un Master
-if ($_SESSION['ruolo'] != 'master') {
+// Verifica se l'utente è un Master (admin globale o admin aziendale)
+if ($_SESSION['ruolo'] != 'master' || (!is_null($_SESSION['azienda_id']) && $_GET['azienda_id'] != $_SESSION['azienda_id'])) {
     header("Location: login.php");
     exit;
 }
+
 
 $azienda_id = $_GET['azienda_id'];
 
 // Recupera il cliente e le sue linee di prodotto
 $cliente = $conn->query("SELECT * FROM aziende WHERE id = $azienda_id")->fetch_assoc();
-$linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = $azienda_id ORDER BY nome ASC");
+$linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = $azienda_id ORDER BY CAST(SUBSTRING_INDEX(nome, ' ', -1) AS DECIMAL(10, 2)) ASC");
+
+
+
+//inserimento di una nuova linea di prodotto
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome_linea'])) {
+    $nome_linea = $_POST['nome_linea'];
+    $stmt = $conn->prepare("INSERT INTO linee_prodotti (nome, azienda_id) VALUES (?, ?)");
+    $stmt->bind_param("si", $nome_linea, $azienda_id);
+    if ($stmt->execute()) {
+        echo "<div class='alert alert-success'>Linea di prodotto aggiunta con successo!</div>";
+    } else {
+        echo "<div class='alert alert-danger'>Errore nell'aggiunta della linea di prodotto.</div>";
+    }
+}
+
 
 ?>
 
@@ -67,18 +83,56 @@ $linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = 
     <div class="container mt-5">
         <h2 class="mb-4">Linee di Prodotto per <?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?></h2>
 
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert alert-success">
+                <?= $_SESSION['success'] ?>
+            </div>
+            <?php unset($_SESSION['success']); ?>
+        <?php endif; ?>
         <!-- Lista delle linee di prodotto -->
         <div class="product-list">
             <?php while ($row = $linee_prodotti->fetch_assoc()): ?>
                 <div class="product-card">
                     <h5><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
                     <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $row['id'] ?>"
-                       class="btn btn-primary btn-rounded"><i class="fas fa-folder"></i> Progetti</a>
+                       class="btn btn-outline-primary btn-rounded"><i class="fas fa-folder"></i> Progetti</a><br>
+                    <a href="modifica_linea_prodotto.php?linea_prodotto_id=<?= $row['id'] ?>&azienda_id=<?= $azienda_id ?>"
+                       class="btn btn-warning btn-rounded">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="elimina_linea_prodotto.php?linea_prodotto_id=<?= $row['id'] ?>&azienda_id=<?= $azienda_id ?>"
+                       class="btn btn-danger btn-rounded"
+                       onclick="return confirm('Sei sicuro di voler eliminare questa linea di prodotto?')">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+
                 </div>
             <?php endwhile; ?>
         </div>
-        <!-- Pulsante per tornare alla dashboard -->
-        <a href="master_dashboard.php" class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-left"></i> Torna alla Dashboard</a>
+
+        <div class="d-flex justify-content-between mt-3 mb-4">
+
+            <?php if (is_null($_SESSION['azienda_id'])): ?>
+                <!-- Pulsante per tornare alla dashboard visibile solo per admin globale (pieni permessi) -->
+                <a href="master_dashboard.php" class="btn btn-primary btn-rounded ">
+                    <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+                </a>
+            <?php endif; ?>
+            <!-- Bottone per visualizzare il form -->
+            <button id="toggleFormButton" class="btn btn-primary btn-rounded">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- Form per inserire una nuova linea di prodotto, nascosto di default -->
+        <form id="newLineForm" method="POST" action="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>" style="display: none;">
+            <div class="mb-3">
+                <label for="nome_linea" class="form-label">Nuova Linea di Prodotto:</label>
+                <input type="text" name="nome_linea" id="nome_linea" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-rounded btn-primary">Aggiungi Linea di Prodotto</button>
+        </form>
+
 
     </div>
 
@@ -87,3 +141,15 @@ $linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = 
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>
+
+<script>
+    document.getElementById('toggleFormButton').addEventListener('click', function() {
+        var form = document.getElementById('newLineForm');
+        if (form.style.display === 'none') {
+            form.style.display = 'block'; // Mostra il form
+        } else {
+            form.style.display = 'none'; // Nascondi il form
+        }
+    });
+</script>
+

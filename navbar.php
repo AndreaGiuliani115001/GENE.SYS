@@ -89,10 +89,19 @@ session_start();
                 <!-- Verifica se l'utente è loggato -->
                 <?php if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true): ?>
                     <li class="nav-item">
-                        <a class="nav-link"
-                           href="master_dashboard.php"><i class="fas fa-home"></i>
-                        </a>
+                        <?php if (is_null($_SESSION['azienda_id'])): ?>
+                            <!-- Admin globale (pieni permessi) -->
+                            <a class="nav-link" href="master_dashboard.php"><i class="fas fa-home"></i> Dashboard Admin</a>
+                        <?php else: ?>
+                            <?php $azienda_id = $_SESSION['azienda_id']; ?>
+                            <!-- Admin aziendale -->
+                            <a class="nav-link" href="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>">
+                                <i class="fas fa-home"></i> Dashboard Aziendale
+                            </a>
+                        <?php endif; ?>
                     </li>
+
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Benvenuto, <?= htmlspecialchars($_SESSION['username']); ?>! <i class="fas fa-user-circle"></i>

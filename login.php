@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($azienda_id === null) {
                     header("Location: master_dashboard.php"); // Admin globale
                 } else {
-                    header("Location: ufficio_tecnico_dashboard.php"); // Admin aziendale
+                    header("Location: master_linee_prodotti.php?azienda_id=$azienda_id"); // Admin aziendale
                 }
             } else if ($ruolo == 'operatore') {
                 header("Location: operatore_dashboard.php");

@@ -5,8 +5,9 @@ include 'navbar.php';
 /** @var mysqli $conn */
 include('connection.php');
 
-// Verifica se l'utente è un Master
-if ($_SESSION['ruolo'] != 'master') {
+
+// Verifica se l'utente è un Master (admin globale o admin aziendale)
+if ($_SESSION['ruolo'] != 'master' || (!is_null($_SESSION['azienda_id']) && $_GET['azienda_id'] != $_SESSION['azienda_id'])) {
     header("Location: login.php");
     exit;
 }
@@ -86,7 +87,7 @@ if ($result->num_rows === 0) {
 
 <div class="full-screen-container">
     <div class="container mt-5 my-auto">
-        <h2>Progetti dell'Azienda</h2>
+        <h2>Progetti dell'Azienda </h2>
 
         <!-- Mostra il pulsante "Aggiungi Progetto" solo se l'utente è master -->
         <?php if ($_SESSION['ruolo'] == 'master'): ?>
@@ -123,6 +124,11 @@ if ($result->num_rows === 0) {
                             <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                                class="btn btn-primary btn-rounded"><i class="fas fa-eye"></i>
                             </a>
+                            <a href="modifica_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                               class="btn btn-warning btn-rounded">
+                                <i class="fas fa-edit"></i>
+                            </a>
+
                             <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                                class="btn btn-danger btn-rounded"
                                onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');">
