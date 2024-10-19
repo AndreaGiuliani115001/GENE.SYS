@@ -29,7 +29,8 @@ $query = "SELECT id, nome FROM macro_categorie WHERE campo_operativo_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $campo_operativo);
 $stmt->execute();
-$result = $stmt->get_result();
+$macro_result = $stmt->get_result();
+
 ?>
 
 <style>
@@ -45,27 +46,83 @@ $result = $stmt->get_result();
         min-height: 100vh;
     }
 
-    footer {
-        background-color: #343a40;
+    /* Stile delle card */
+    .card {
+        margin-bottom: 30px;
+        border-radius: 10px;
+    }
+
+    /* Limita l'altezza dell'elenco delle attività per evitare che allarghi le card */
+    .activity-list, .checklist-list {
+        max-height: 150px; /* Limita l'altezza massima dell'elenco */
+        overflow-y: auto; /* Aggiunge lo scroll verticale se necessario */
+    }
+
+    /* Migliora i link */
+    .checklist-list a {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 5px 10px;
+        background-color: #27bcbc;
         color: white;
-        padding: 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
     }
 </style>
 
 <div class="full-screen-container">
     <div class="container mt-5">
         <div class="row">
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <div class="col-md-6 my-2">
-                    <div class="card shadow-sm">
+            <?php while ($macro = $macro_result->fetch_assoc()): ?>
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
                         <div class="card-body">
-                            <h5 class="card-title"><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
-                            <a href="storico_interventi.php?macro_id=<?= $row['id'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-outline-primary btn-rounded mx-1">
-                                <i class="fas fa-history"></i> Storico Interventi
-                            </a>
-                            <a href="attivita.php?macro_id=<?= $row['id'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-primary btn-rounded mx-1">
-                                <i class="fas fa-tasks"></i> Vedi Attività
-                            </a>
+                            <h5 class="card-title"><?= htmlspecialchars($macro['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
+
+                            <!-- Query per ottenere le attività correlate a questa macro-categoria -->
+                            <?php
+                            $attivita_stmt = $conn->prepare("
+                                SELECT a.id, a.nome 
+                                FROM attivita a
+                                JOIN progetti_attivita pa ON a.id = pa.attivita_id
+                                WHERE a.macro_categoria_id = ? AND pa.progetto_id = ?");
+                            $attivita_stmt->bind_param("ii", $macro['id'], $progetto_id);
+                            $attivita_stmt->execute();
+                            $attivita_result = $attivita_stmt->get_result();
+                            ?>
+
+                            <!-- Elenco delle attività sotto la macro-categoria -->
+                            <ul class="activity-list list-group">
+                                <?php while ($attivita = $attivita_result->fetch_assoc()): ?>
+                                    <li class="list-group-item">
+                                        <?= htmlspecialchars($attivita['nome'], ENT_QUOTES, 'UTF-8') ?>
+
+                                        <!-- Query per ottenere le checklist correlate a questa attività -->
+                                        <?php
+                                        $checklist_stmt = $conn->prepare("
+                                            SELECT c.id, c.nome 
+                                            FROM checklist c
+                                            JOIN checklist_attivita ca ON c.id = ca.checklist_id
+                                            WHERE ca.attivita_id = ?");
+                                        $checklist_stmt->bind_param("i", $attivita['id']);
+                                        $checklist_stmt->execute();
+                                        $checklist_result = $checklist_stmt->get_result();
+                                        ?>
+
+                                        <!-- Elenco delle checklist per ogni attività -->
+                                        <ul class="checklist-list list-unstyled">
+                                            <?php while ($checklist = $checklist_result->fetch_assoc()): ?>
+                                                <li>
+                                                    <a href="checklist.php?attivita_id=<?= $attivita['id'] ?>&checklist_id=<?= $checklist['id'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>&tipo=manutenzione">
+                                                        <i class="fas fa-clipboard-check"></i> checklist
+                                                    </a>
+                                                </li>
+                                            <?php endwhile; ?>
+                                        </ul>
+                                    </li>
+                                <?php endwhile; ?>
+                            </ul>
                         </div>
                     </div>
                 </div>

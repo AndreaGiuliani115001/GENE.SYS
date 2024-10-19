@@ -14,7 +14,7 @@ $linea_prodotto_id = $_GET['linea_prodotto_id'];
 
 // Recupera i dettagli del progetto e il campo operativo dal database
 $stmt = $conn->prepare("
-    SELECT p.cin, p.state, p.delivery, p.immagine,
+    SELECT p.cin, p.stato, p.consegna, p.immagine,
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            a.campo_operativo_id, 
@@ -116,8 +116,8 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
                 <div class="details-block shadow-sm">
                     <h3><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h3>
                     <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['stato'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['consegna'], ENT_QUOTES, 'UTF-8') ?></p>
                     <div class="department-block">
                         <?php if ($campo_operativo_id == 2): ?>
                             <!-- Campo operativo Navale -->

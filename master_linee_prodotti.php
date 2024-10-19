@@ -83,6 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome_linea'])) {
     <div class="container mt-5">
         <h2 class="mb-4">Linee di Prodotto per <?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?></h2>
 
+        <?php if (isset($linee_prodotti) && $linee_prodotti->num_rows == 0): ?>
+            <div class="alert alert-info mt-3">Nessuna linea di prodotto trovata per questa azienda.</div>
+        <?php endif; ?>
+
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success">
                 <?= $_SESSION['success'] ?>
@@ -115,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome_linea'])) {
             <?php if (is_null($_SESSION['azienda_id'])): ?>
                 <!-- Pulsante per tornare alla dashboard visibile solo per admin globale (pieni permessi) -->
                 <a href="master_dashboard.php" class="btn btn-primary btn-rounded ">
-                    <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+                    <i class="fas fa-arrow-left"></i>
                 </a>
             <?php endif; ?>
             <!-- Bottone per visualizzare il form -->

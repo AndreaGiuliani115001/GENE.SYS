@@ -18,7 +18,7 @@ $linea_prodotto_id = $_GET['linea_prodotto_id'];
 
 // Recupera i progetti associati all'azienda e alla linea di prodotto selezionate
 $stmt = $conn->prepare("
-    SELECT p.cin, p.state, p.delivery, p.immagine, 
+    SELECT p.nome_cliente, p.cin, p.stato, p.consegna, p.immagine, 
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            p.id AS id_progetto
@@ -30,10 +30,6 @@ $stmt->bind_param("ii", $azienda_id, $linea_prodotto_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Se non ci sono progetti, mostra un messaggio
-if ($result->num_rows === 0) {
-    die("Nessun progetto trovato per questa linea di prodotto.");
-}
 ?>
 <style>
     /* Imposta altezza e larghezza del 100% su html e body */
@@ -59,16 +55,31 @@ if ($result->num_rows === 0) {
     .card {
         border: none; /* Rimuove il bordo */
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Aggiunge un'ombra personalizzata */
+        height: 100%; /* Imposta l'altezza della card per riempire tutto lo spazio */
+        display: flex;
+        flex-direction: column; /* Per garantire che il contenuto sia distribuito verticalmente */
     }
 
     .card-img-top {
-        border-top-left-radius: 8px; /* Mantiene gli angoli arrotondati */
+        width: 100%;
+        height: 200px; /* Imposta un'altezza fissa per le immagini */
+        object-fit: cover; /* Mantiene le proporzioni e ritaglia l'immagine se necessario */
+        border-top-left-radius: 8px;
         border-top-right-radius: 8px;
     }
 
+    .card-body {
+        flex-grow: 1; /* Permette al corpo della card di occupare tutto lo spazio rimanente */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Progress block (opzionale, se vuoi uniformare anche questo elemento in altezza) */
     .progress-block {
         margin: 30px 0;
     }
+
 
     .progress-bar {
         width: 100%;
@@ -82,38 +93,50 @@ if ($result->num_rows === 0) {
         height: 30px;
     }
 
+    /* Contenitore dei bottoni con Flexbox */
+    .card-body .button-group {
+        display: flex;
+        justify-content: space-between; /* Spazia i bottoni */
+        gap: 10px; /* Aggiunge spazio tra i bottoni */
+    }
+
+    .card-body .btn {
+        flex-grow: 1; /* Permette ai bottoni di crescere in modo uniforme */
+        width: auto; /* Imposta la larghezza automatica per evitare che si estendano per tutta la card */
+        white-space: nowrap; /* Evita che il testo vada a capo */
+    }
+
+
 </style>
 
 
 <div class="full-screen-container">
     <div class="container mt-5 my-auto">
-        <h2>Progetti dell'Azienda </h2>
+        <h2>Progetti dell'Azienda</h2>
 
-        <!-- Mostra il pulsante "Aggiungi Progetto" solo se l'utente è master -->
-        <?php if ($_SESSION['ruolo'] == 'master'): ?>
-            <div class="text-end mb-4">
-                <a href="aggiungi_progetto.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                   class="btn btn-primary btn-rounded "><i class="fas fa-plus"></i></a>
-            </div>
+        <?php if (isset($result) && $result->num_rows == 0): ?>
+            <div class="alert alert-info mt-3">Nessuna progetto trovato per questa azienda.</div>
         <?php endif; ?>
 
         <div class="row">
             <?php while ($progetto = $result->fetch_assoc()):
                 $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['id_progetto'];
                 ?>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4 mt-3">
                     <div class="card">
                         <img src="<?= htmlspecialchars($progetto['immagine'], ENT_QUOTES, 'UTF-8') ?>"
                              class="card-img-top" alt="Progetto">
                         <div class="card-body">
                             <h5 class="card-title mb-4"><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h5>
                             <p class="card-text">
+                                <strong>Cliente:</strong> <?= htmlspecialchars($progetto['nome_cliente'], ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="card-text">
                                 <strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
                             <p class="card-text">
-                                <strong>Stato:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?>
+                                <strong>Stato:</strong> <?= htmlspecialchars($progetto['stato'], ENT_QUOTES, 'UTF-8') ?>
                             </p>
                             <p class="card-text">
-                                <strong>Consegna:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?>
+                                <strong>Consegna:</strong> <?= htmlspecialchars($progetto['consegna'], ENT_QUOTES, 'UTF-8') ?>
                             </p>
                             <!-- Blocco Progresso -->
                             <div class="progress-block">
@@ -121,29 +144,30 @@ if ($result->num_rows === 0) {
                                     <div></div>
                                 </div>
                             </div>
-                            <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-primary btn-rounded"><i class="fas fa-eye"></i>
-                            </a>
-                            <a href="modifica_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-warning btn-rounded">
-                                <i class="fas fa-edit"></i>
-                            </a>
 
-                            <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-danger btn-rounded"
-                               onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');">
-                                <i class="fas fa-trash"></i>
-                            </a>
-
+                            <!-- Contenitore dei bottoni -->
+                            <div class="button-group">
+                                <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                                   class="btn btn-outline-primary btn-rounded"><i class="fas fa-eye"></i></a>
+                                <a href="modifica_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                                   class="btn btn-outline-warning btn-rounded"><i class="fas fa-edit"></i></a>
+                                <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                                   class="btn btn-outline-danger btn-rounded"
+                                   onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');"><i class="fas fa-trash"></i></a>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             <?php endwhile; ?>
         </div>
-        <a href="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>" class="btn btn-outline-primary mt-3">
-            <i class="fas fa-arrow-left"></i> Torna alle Linee di Prodotto
+        <div class="d-flex justify-content-between">
+        <a href="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>" class="btn btn-primary btn-rounded">
+            <i class="fas fa-arrow-left"></i>
         </a>
-
+            <a href="aggiungi_progetto.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+               class="btn btn-primary btn-rounded "><i class="fas fa-plus"></i></a>
+        </div>
     </div>
 
     <!-- Footer -->

@@ -14,9 +14,6 @@ if (!isset($_SESSION['ruolo'])) {
     exit;
 }
 
-// Recupera il macro_id dalla query string
-$macro_id = $_GET['macro_id'];
-
 // Query per ottenere le attività specifiche del progetto e della macro-categoria
 $query = "
     SELECT a.id, a.nome 

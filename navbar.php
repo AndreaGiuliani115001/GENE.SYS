@@ -91,12 +91,12 @@ session_start();
                     <li class="nav-item">
                         <?php if (is_null($_SESSION['azienda_id'])): ?>
                             <!-- Admin globale (pieni permessi) -->
-                            <a class="nav-link" href="master_dashboard.php"><i class="fas fa-home"></i> Dashboard Admin</a>
+                            <a class="nav-link" href="master_dashboard.php"><i class="fas fa-home"></i></a>
                         <?php else: ?>
                             <?php $azienda_id = $_SESSION['azienda_id']; ?>
                             <!-- Admin aziendale -->
                             <a class="nav-link" href="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>">
-                                <i class="fas fa-home"></i> Dashboard Aziendale
+                                <i class="fas fa-home"></i>
                             </a>
                         <?php endif; ?>
                     </li>

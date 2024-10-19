@@ -29,8 +29,8 @@ if ($componente == 'scafo') {
 $componente_principale_stmt = $conn->prepare("
     SELECT c.id, c.nome, c.descrizione 
     FROM componenti c
-    JOIN progetti_componenti pc ON c.id = pc.componente_id
-    WHERE pc.progetto_id = ? AND (c.id = ? OR c.parent_id = ?)
+    JOIN componente_progetto cp ON c.id = cp.componente_id
+    WHERE cp.progetto_id = ? AND (c.id = ? OR c.parent_id = ?)
 ");
 $componente_principale_stmt->bind_param("iii", $progetto_id, $parent_id, $parent_id);
 $componente_principale_stmt->execute();
@@ -55,7 +55,6 @@ $componenti = $componente_principale_stmt->get_result();
         padding: 20px;
     }
 
-    /* Griglia per i componenti */
     .component-list {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -84,7 +83,6 @@ $componenti = $componente_principale_stmt->get_result();
     .component-card .btn {
         margin-top: 10px;
     }
-
 </style>
 
 <div class="full-screen-container">
@@ -97,13 +95,12 @@ $componenti = $componente_principale_stmt->get_result();
                 <div class="component-card">
                     <h5><?= htmlspecialchars($comp['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
                     <p><?= htmlspecialchars($comp['descrizione'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <a href="checklist.php?componente_id=<?= $comp['id'] ?>&componente=<?= $componente ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                       class="btn btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i>  Visualizza checklist</a>
+                    <a href="checklist.php?componente_id=<?= $comp['id'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                       class="btn btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i> Visualizza checklist</a>
                 </div>
             <?php endwhile; ?>
         </div>
 
-        <!-- Pulsante per tornare alla dashboard di produzione -->
         <a href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
            class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-left"></i> Torna alla Dashboard Produzione</a>
     </div>

@@ -8,78 +8,64 @@ if (!isset($_SESSION['ruolo'])) {
     exit;
 }
 
-// Recupera le risposte dal form
-$checklist_id = $_POST['checklist_id'];
-$risposte = $_POST['risposte'];
-$componente_id = $_POST['componente_id'] ?? null;
-$attivita_id = $_POST['attivita_id'] ?? null;
+// Recupera i dati inviati dal form
 $progetto_id = $_POST['progetto_id'];
+$componente_id = $_POST['componente_id'];
+$checklist_componente_progetto_id = $_POST['checklist_componente_progetto_id'];
 $azienda_id = $_POST['azienda_id'];
 $linea_prodotto_id = $_POST['linea_prodotto_id'];
-$tipo = $_POST['tipo'] ?? 'produzione';
+$risposte = $_POST['risposte'];
 
-// Directory per il caricamento delle immagini
+// Directory per il caricamento dei file multimediali
 $upload_dir = 'uploads/';
-
-// Controllo di debug
-echo "Dati ricevuti dal form: <br>";
-echo "Checklist ID: " . $checklist_id . "<br>";
-echo "Progetto ID: " . $progetto_id . "<br>";
-echo "Componente ID: " . $componente_id . "<br>";
-echo "Attività ID: " . $attivita_id . "<br>";
-echo "Tipo: " . $tipo . "<br>";
-echo "Dati delle risposte: <br>";
-print_r($risposte);
-echo "<br>";
-
-// Contenuto di $_FILES per verificare la presenza delle immagini
-echo "Contenuto di \$_FILES: <br>";
-echo "<pre>";
-print_r($_FILES);
-echo "</pre>";
 
 // Controllo della cartella uploads
 if (!is_dir($upload_dir)) {
-    echo "La cartella 'uploads' non esiste. Creazione in corso...<br>";
-    if (mkdir($upload_dir, 0777, true)) {
-        echo "Cartella 'uploads' creata con successo.<br>";
-    } else {
-        echo "Errore nella creazione della cartella 'uploads'.<br>";
-        exit;
-    }
+    mkdir($upload_dir, 0777, true);
 }
 
-// Ciclo attraverso le risposte di testo e data
+// Ciclo attraverso le risposte
 foreach ($risposte as $domanda_id => $risposta) {
-    // Prepara i valori in base al tipo di contenuto
-    $tipo_contenuto_stmt = $conn->prepare("SELECT tipo_contenuto FROM domande WHERE id = ?");
-    $tipo_contenuto_stmt->bind_param("i", $domanda_id);
-    $tipo_contenuto_stmt->execute();
-    $tipo_contenuto_result = $tipo_contenuto_stmt->get_result()->fetch_assoc();
-    $tipo_contenuto = $tipo_contenuto_result['tipo_contenuto'];
-
-    echo "Processando domanda ID: " . $domanda_id . " con tipo contenuto: " . $tipo_contenuto . "<br>";
+    // Recupera il tipo di contenuto della domanda
+    $stmt = $conn->prepare("SELECT tipo_risposta FROM domande WHERE id = ?");
+    $stmt->bind_param("i", $domanda_id);
+    $stmt->execute();
+    $tipo_risposta = $stmt->get_result()->fetch_assoc()['tipo_risposta'];
 
     $valore_testo = null;
     $valore_data = null;
     $valore_media_url = null;
 
-    if ($tipo_contenuto == 'testo') {
+    // Gestione del salvataggio in base al tipo di risposta
+    if ($tipo_risposta == 'testo') {
         $valore_testo = $risposta;
-    } elseif ($tipo_contenuto == 'data') {
+    } elseif ($tipo_risposta == 'data') {
         $valore_data = $risposta;
+    } elseif (in_array($tipo_risposta, ['immagine', 'video', 'file'])) {
+        // Gestione dei file caricati
+        if (isset($_FILES['risposte']['tmp_name'][$domanda_id]) && $_FILES['risposte']['error'][$domanda_id] == UPLOAD_ERR_OK) {
+            $file_name = uniqid() . '_' . basename($_FILES['risposte']['name'][$domanda_id]);
+            $upload_file = $upload_dir . $file_name;
+
+            if (move_uploaded_file($_FILES['risposte']['tmp_name'][$domanda_id], $upload_file)) {
+                $valore_media_url = $upload_file;
+            }
+        }
     }
 
-    // Verifica se esiste già una risposta per questa domanda
-    $stmt = $conn->prepare("SELECT r.id FROM risposte r
-                            JOIN domanda_risposte dr ON r.id = dr.risposta_id
-                            WHERE dr.domanda_id = ?");
-    $stmt->bind_param("i", $domanda_id);
+    // Verifica se esiste già una risposta per questa domanda e checklist_componente_progetto_id
+    $stmt = $conn->prepare("
+    SELECT r.id FROM risposte r
+    JOIN risposta_domanda_checklist_componente_progetto rdc 
+    ON r.id = rdc.risposta_id
+    WHERE rdc.domanda_checklist_componente_progetto_id = ?");
+    $stmt->bind_param("i", $checklist_componente_progetto_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
+
     if ($result->num_rows > 0) {
-        // Se esiste una risposta, aggiornala
+        // Se esiste già una risposta, aggiornala
         $risposta_row = $result->fetch_assoc();
         $risposta_id = $risposta_row['id'];
 
@@ -89,85 +75,44 @@ foreach ($risposte as $domanda_id => $risposta) {
             WHERE id = ?");
         $update_stmt->bind_param("sssi", $valore_testo, $valore_data, $valore_media_url, $risposta_id);
         $update_stmt->execute();
-        echo "Risposta aggiornata per domanda ID: " . $domanda_id . "<br>";
     } else {
-        // Se non esiste una risposta, inserisci una nuova risposta
+        // Se non esiste una risposta, inseriscine una nuova
         $insert_stmt = $conn->prepare("
-            INSERT INTO risposte (tipo_contenuto, valore_testo, valore_data, valore_media_url) 
+            INSERT INTO risposte (valore_testo, valore_data, valore_media_url, tipo_contenuto) 
             VALUES (?, ?, ?, ?)");
-        $insert_stmt->bind_param("ssss", $tipo_contenuto, $valore_testo, $valore_data, $valore_media_url);
+        $insert_stmt->bind_param("ssss", $valore_testo, $valore_data, $valore_media_url, $tipo_risposta);
         $insert_stmt->execute();
         $risposta_id = $conn->insert_id;
 
-        // Collega la nuova risposta alla domanda nella tabella intermedia
-        $insert_rel_stmt = $conn->prepare("
-            INSERT INTO domanda_risposte (domanda_id, risposta_id) 
-            VALUES (?, ?)");
-        $insert_rel_stmt->bind_param("ii", $domanda_id, $risposta_id);
-        $insert_rel_stmt->execute();
-        echo "Nuova risposta inserita per domanda ID: " . $domanda_id . "<br>";
-    }
-}
+        // Recupera l'ID della relazione domanda_checklist_componente_progetto
+        $select_rel_stmt = $conn->prepare("
+    SELECT id 
+    FROM domanda_checklist_componente_progetto 
+    WHERE domanda_id = ? AND checklist_componente_progetto_id = ?");
+        $select_rel_stmt->bind_param("ii", $domanda_id, $checklist_componente_progetto_id);
+        $select_rel_stmt->execute();
+        $rel_result = $select_rel_stmt->get_result();
 
-// Gestione delle immagini (al di fuori del ciclo precedente)
-foreach ($_FILES['risposte']['tmp_name'] as $domanda_id => $tmp_name) {
-    if ($_FILES['risposte']['error'][$domanda_id] == UPLOAD_ERR_OK) {
-        // Genera un nome univoco per evitare sovrascritture
-        $file_name = uniqid() . '_' . basename($_FILES['risposte']['name'][$domanda_id]);
-        $upload_file = $upload_dir . $file_name;
+// Controlla se la relazione esiste
+        if ($rel_result->num_rows > 0) {
+            $rel_row = $rel_result->fetch_assoc();
+            $domanda_checklist_componente_progetto_id = $rel_row['id']; // Ottieni l'ID corretto
 
-        echo "Tentativo di spostare il file caricato in: " . $upload_file . "<br>";
-
-        // Sposta il file caricato nella cartella uploads
-        if (move_uploaded_file($tmp_name, $upload_file)) {
-            echo "Immagine caricata con successo in: " . $upload_file . "<br>";
-
-            // Verifica se esiste già una risposta per questa domanda
-            $stmt = $conn->prepare("SELECT r.id FROM risposte r
-                                    JOIN domanda_risposte dr ON r.id = dr.risposta_id
-                                    WHERE dr.domanda_id = ?");
-            $stmt->bind_param("i", $domanda_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            $valore_media_url = $upload_file;
-
-            if ($result->num_rows > 0) {
-                // Se esiste una risposta, aggiornala
-                $risposta_row = $result->fetch_assoc();
-                $risposta_id = $risposta_row['id'];
-
-                $update_stmt = $conn->prepare("
-                    UPDATE risposte 
-                    SET valore_media_url = ? 
-                    WHERE id = ?");
-                $update_stmt->bind_param("si", $valore_media_url, $risposta_id);
-                $update_stmt->execute();
-                echo "Risposta aggiornata con immagine per domanda ID: " . $domanda_id . "<br>";
-            } else {
-                // Se non esiste una risposta, inserisci una nuova risposta
-                $insert_stmt = $conn->prepare("
-                    INSERT INTO risposte (tipo_contenuto, valore_media_url) 
-                    VALUES ('immagine', ?)");
-                $insert_stmt->bind_param("s", $valore_media_url);
-                $insert_stmt->execute();
-                $risposta_id = $conn->insert_id;
-
-                // Collega la nuova risposta alla domanda nella tabella intermedia
-                $insert_rel_stmt = $conn->prepare("
-                    INSERT INTO domanda_risposte (domanda_id, risposta_id) 
-                    VALUES (?, ?)");
-                $insert_rel_stmt->bind_param("ii", $domanda_id, $risposta_id);
-                $insert_rel_stmt->execute();
-                echo "Nuova risposta inserita con immagine per domanda ID: " . $domanda_id . "<br>";
-            }
+            // Ora puoi inserire la risposta collegata all'ID corretto
+            $insert_rel_stmt = $conn->prepare("
+        INSERT INTO risposta_domanda_checklist_componente_progetto (risposta_id, domanda_checklist_componente_progetto_id) 
+        VALUES (?, ?)");
+            $insert_rel_stmt->bind_param("ii", $risposta_id, $domanda_checklist_componente_progetto_id);
+            $insert_rel_stmt->execute();
         } else {
-            echo "Errore nel salvataggio dell'immagine. Verifica i permessi della cartella.<br>";
+            echo "Errore: Relazione domanda-checklist-componente non trovata.";
             exit;
         }
+
     }
 }
 
-header("Location: checklist.php?componente_id=" . $componente_id . "&attivita_id=" . $attivita_id . "&progetto_id=" . $progetto_id . "&azienda_id=" . $azienda_id . "&linea_prodotto_id=" . $linea_prodotto_id . "&tipo=" . $tipo);
-echo "Processo di salvataggio completato. Puoi ora controllare i messaggi di debug sopra.";
+// Reindirizza alla pagina della checklist
+header("Location: checklist.php?componente_id=" . $componente_id . "&progetto_id=" . $progetto_id . "&azienda_id=" . $azienda_id . "&linea_prodotto_id=" . $linea_prodotto_id);
 exit;
+?>

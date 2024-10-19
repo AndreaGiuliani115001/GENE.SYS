@@ -21,7 +21,7 @@ $linea_prodotto_id = $_GET['linea_prodotto_id'];
 
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
-    SELECT p.cin, p.state, p.delivery, p.immagine,
+    SELECT p.cin, p.stato, p.consegna, p.immagine,
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            p.id AS id_progetto
@@ -141,8 +141,8 @@ $progetto = $stmt->get_result()->fetch_assoc();
                 </div>
             </div>
             <p><strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
-            <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['state'], ENT_QUOTES, 'UTF-8') ?></p>
-            <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['delivery'], ENT_QUOTES, 'UTF-8') ?></p>
+            <p><strong>STATE:</strong> <?= htmlspecialchars($progetto['stato'], ENT_QUOTES, 'UTF-8') ?></p>
+            <p><strong>DELIVERY:</strong> <?= htmlspecialchars($progetto['consegna'], ENT_QUOTES, 'UTF-8') ?></p>
             <div class="action-buttons">
                 <a href="checklist.php?progetto_id=<?= $progetto_id ?>&componente=Secondari&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                    class="btn btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i> Verifica materiale</a>
