@@ -37,7 +37,7 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
 
 <!-- CDN di Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkOG0qi7kh0x0pmE_rC3hSZJwrYNs6KpM"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key="></script>
 
 <style>
     .details-block {
