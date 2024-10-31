@@ -25,16 +25,16 @@ if ($componente == 'scafo') {
     die("Componente non valido.");
 }
 
-// Recupera i componenti principali e i sottocomponenti filtrati per progetto
-$componente_principale_stmt = $conn->prepare("
-    SELECT c.id, c.nome, c.descrizione 
+// Recupera il componente principale e i suoi sottocomponenti per il progetto specifico
+$componente_stmt = $conn->prepare("
+    SELECT c.id AS componente_id, c.nome AS componente_nome, c.descrizione AS componente_descrizione
     FROM componenti c
     JOIN componente_progetto cp ON c.id = cp.componente_id
     WHERE cp.progetto_id = ? AND (c.id = ? OR c.parent_id = ?)
 ");
-$componente_principale_stmt->bind_param("iii", $progetto_id, $parent_id, $parent_id);
-$componente_principale_stmt->execute();
-$componenti = $componente_principale_stmt->get_result();
+$componente_stmt->bind_param("iii", $progetto_id, $parent_id, $parent_id);
+$componente_stmt->execute();
+$componenti = $componente_stmt->get_result();
 ?>
 
 <style>
@@ -49,67 +49,105 @@ $componenti = $componente_principale_stmt->get_result();
         flex-grow: 1;
     }
 
-    footer {
-        background-color: #343a40;
-        color: white;
-        padding: 20px;
-    }
-
-    .component-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        grid-gap: 20px;
-        margin-top: 20px;
-    }
-
     .component-card {
         background-color: #fff;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        text-align: center;
+        margin-bottom: 30px;
     }
 
-    .component-card h5 {
-        font-size: 20px;
+    .checklist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .checklist-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        text-align: center;
+        margin: 15px;
+
+    }
+
+    .checklist-card h6 {
+        font-size: 18px;
         margin-bottom: 10px;
     }
 
-    .component-card p {
-        font-size: 16px;
-        margin-bottom: 15px;
+    .component-header {
+        background-color: #27bcbc;
+        color: white;
+        padding: 15px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        margin: 0;
     }
 
-    .component-card .btn {
-        margin-top: 10px;
+    .alert-info {
+        padding: 10px;
+    }
+
+    .dashboard-icon {
+        font-size: 30px;
+        color: #27bcbc;
+        margin-bottom: 5px;
     }
 </style>
 
 <div class="full-screen-container">
     <div class="container mt-5">
-        <h2 class="mb-4">Componenti per <?= ucfirst(htmlspecialchars($componente, ENT_QUOTES, 'UTF-8')) ?></h2>
+        <h2 class="mb-4">Checklist per <?= ucfirst(htmlspecialchars($componente, ENT_QUOTES, 'UTF-8')) ?></h2>
 
-        <!-- Griglia dei componenti e sottocomponenti -->
-        <div class="component-list">
-            <?php while ($comp = $componenti->fetch_assoc()): ?>
-                <div class="component-card">
-                    <h5><?= htmlspecialchars($comp['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
-                    <p><?= htmlspecialchars($comp['descrizione'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <a href="checklist.php?componente_id=<?= $comp['id'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                       class="btn btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i> Visualizza checklist</a>
-                </div>
-            <?php endwhile; ?>
-        </div>
+        <?php while ($comp = $componenti->fetch_assoc()): ?>
+            <div class="component-card">
+                <h4 class="component-header"><?= htmlspecialchars($comp['componente_nome'], ENT_QUOTES, 'UTF-8') ?></h4>
+
+                <?php
+                // Recupera le checklist specifiche per questo progetto e componente
+                $componente_id = $comp['componente_id'];
+                $checklist_stmt = $conn->prepare("
+                    SELECT cl.id AS checklist_id, cl.nome AS checklist_nome, cl.descrizione AS checklist_descrizione
+                    FROM checklist cl
+                    JOIN checklist_componente_progetto ccp ON cl.id = ccp.checklist_id
+                    JOIN componente_progetto cp ON ccp.componente_progetto_id = cp.id
+                    WHERE cp.progetto_id = ? AND cp.componente_id = ?
+                ");
+                $checklist_stmt->bind_param("ii", $progetto_id, $componente_id);
+                $checklist_stmt->execute();
+                $checklists = $checklist_stmt->get_result();
+                ?>
+
+                <?php if ($checklists->num_rows > 0): ?>
+                    <div class="checklist-grid">
+                        <?php while ($checklist = $checklists->fetch_assoc()): ?>
+                            <div class="checklist-card">
+                                <div class="dashboard-icon">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <h6><?= htmlspecialchars($checklist['checklist_nome'], ENT_QUOTES, 'UTF-8') ?></h6>
+                                <a href="checklist.php?checklist_id=<?= $checklist['checklist_id'] ?>&componente_id=<?= $componente_id ?>&componente=<?= $comp['componente_nome'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                                   class="btn btn-primary btn-sm btn-rounded mb-2">Visualizza</a>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="alert-info text-center">Nessuna checklist disponibile per questo componente.</p>
+                <?php endif; ?>
+            </div>
+        <?php endwhile; ?>
 
         <a href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-           class="btn btn-outline-primary mt-4"><i class="fas fa-arrow-left"></i> Torna alla Dashboard Produzione</a>
+           class="btn btn-primary btn-rounded"><i class="fas fa-arrow-left"></i></a>
     </div>
 
     <!-- Footer -->
-    <footer class="text-center text-black bg-white">
+    <footer class="text-center text-black bg-white py-4">
         &copy; 2024 GENE.SYS. Tutti i diritti riservati.
     </footer>
 </div>
 
 </body>
 </html>
+

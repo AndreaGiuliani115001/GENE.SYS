@@ -21,7 +21,7 @@ $linea_prodotto_id = $_GET['linea_prodotto_id'];
 
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
-    SELECT p.cin, p.stato, p.consegna, p.immagine, 
+    SELECT p.numero_matricola, p.cin, p.stato, p.consegna, p.immagine, 
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            p.id AS id_progetto
@@ -39,7 +39,7 @@ if ($result->num_rows === 0) {
 }
 
 $progetto = $result->fetch_assoc();
-$nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['id_progetto'];
+$nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['numero_matricola'];
 
 ?>
 
@@ -135,15 +135,15 @@ $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #"
                     <div class="dashboard-icon">
                         <i class="fas fa-leaf"></i>
                     </div>
-                    <h3>Sostenibilità</h3>
+                    <h3>Digital Product Passport (DPP)</h3>
                     <p>Visualizza i dettagli di sostenibilità del progetto</p>
                 </a>
             </div>
 
         <!-- Pulsante per tornare alla lista dei progetti -->
         <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-           class="btn btn-outline-primary mt-4">
-            <i class="fas fa-arrow-left"></i> Torna alla lista dei progetti
+           class="btn btn-primary btn-rounded">
+            <i class="fas fa-arrow-left"></i>
         </a>
     </div>
 

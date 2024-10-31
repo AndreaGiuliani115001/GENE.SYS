@@ -14,6 +14,7 @@ $azienda_id = $_GET['azienda_id'];
 // Recupera il cliente e le sue linee di prodotto
 $cliente = $conn->query("SELECT * FROM aziende WHERE id = $azienda_id")->fetch_assoc();
 $linee_prodotti = $conn->query("SELECT * FROM linee_prodotti WHERE azienda_id = $azienda_id ORDER BY CAST(SUBSTRING_INDEX(nome, ' ', -1) AS DECIMAL(10, 2)) ASC");
+$count_linee = $conn->query("SELECT COUNT(*) as totale_linee FROM linee_prodotti WHERE azienda_id = $azienda_id")->fetch_assoc()['totale_linee'];
 
 
 
@@ -76,6 +77,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome_linea'])) {
         margin-top: 10px;
     }
 
+    .stat-box {
+        background-color: #fff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-box i {
+        font-size: 36px;
+        color: #27bcbc;
+        margin-bottom: 10px;
+    }
+
+    .stat-box h4 {
+        font-size: 24px;
+        margin-bottom: 0;
+    }
+
 </style>
 
 <div class="full-screen-container">
@@ -86,6 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome_linea'])) {
         <?php if (isset($linee_prodotti) && $linee_prodotti->num_rows == 0): ?>
             <div class="alert alert-info mt-3">Nessuna linea di prodotto trovata per questa azienda.</div>
         <?php endif; ?>
+        <!-- Blocco per il conteggio totale delle linee di prodotto -->
+        <div class="stat-box mt-5 shadow-sm">
+            <i class="fas fa-stream"></i>
+            <h4><?= $count_linee ?> Linee di prodotto</h4>
+        </div>
 
         <?php if (isset($_SESSION['success'])): ?>
             <div class="alert alert-success">
@@ -95,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome_linea'])) {
         <?php endif; ?>
         <!-- Lista delle linee di prodotto -->
         <div class="product-list">
+
             <?php while ($row = $linee_prodotti->fetch_assoc()): ?>
                 <div class="product-card">
                     <h5><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>

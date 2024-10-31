@@ -10,18 +10,40 @@ if (!isset($_SESSION['ruolo'])) {
 
 // Recupera l'ID del componente e del progetto dalla query string
 $componente_id = $_GET['componente_id'] ?? null;
+$checklist_id = $_GET['checklist_id'] ?? null;
+$componente = $_GET['componente'];
 $progetto_id = $_GET['progetto_id'];
 $azienda_id = $_GET['azienda_id'];
 $linea_prodotto_id = $_GET['linea_prodotto_id'];
 
-// Recupera la checklist in base al componente
+// Recupera il parent_id del componente, se esiste
+$parent_check = $conn->prepare("SELECT parent_id FROM componenti WHERE id = ?");
+$parent_check->bind_param("i", $componente_id);
+$parent_check->execute();
+$parent_result = $parent_check->get_result()->fetch_assoc();
+$parent_id = $parent_result['parent_id'] ?? null;
+
+// Se il componente ha un parent, recupera il nome del componente radice
+if ($parent_id) {
+    $radice_stmt = $conn->prepare("SELECT nome FROM componenti WHERE id = ?");
+    $radice_stmt->bind_param("i", $parent_id);
+    $radice_stmt->execute();
+    $radice_result = $radice_stmt->get_result()->fetch_assoc();
+    $componente_radice = $radice_result['nome'];
+} else {
+    // Se non ha un parent, il componente corrente è già il radice
+    $componente_radice = $componente;
+}
+
+// Recupera la checklist specifica in base all'ID della checklist, componente e progetto
 $checklist_stmt = $conn->prepare("
     SELECT c.id, c.nome, c.descrizione, ccp.id AS checklist_componente_progetto_id
     FROM checklist c
     JOIN checklist_componente_progetto ccp ON c.id = ccp.checklist_id
     JOIN componente_progetto cp ON ccp.componente_progetto_id = cp.id
-    WHERE cp.componente_id = ? AND cp.progetto_id = ?");
-$checklist_stmt->bind_param("ii", $componente_id, $progetto_id);
+    WHERE c.id = ? AND cp.componente_id = ? AND cp.progetto_id = ?
+");
+$checklist_stmt->bind_param("iii", $checklist_id, $componente_id, $progetto_id);
 $checklist_stmt->execute();
 $checklist = $checklist_stmt->get_result()->fetch_assoc();
 
@@ -34,7 +56,7 @@ $checklist_componente_progetto_id = $checklist['checklist_componente_progetto_id
 // Recupera le domande e le risposte per la checklist
 $domande_stmt = $conn->prepare("
     SELECT d.id AS domanda_id, d.testo AS domanda_testo, d.tipo_contenuto, d.tipo_risposta, d.valore_media_url,
-           r.valore_testo AS risposta_testo, r.valore_data AS risposta_data, r.valore_media_url AS risposta_media_url,
+           r.testo AS risposta_testo, r.valore_data AS risposta_data, r.valore_media_url AS risposta_media_url,
            dccp.id AS domanda_checklist_componente_progetto_id
     FROM domande d
     JOIN domanda_checklist_componente_progetto dccp ON d.id = dccp.domanda_id
@@ -45,7 +67,6 @@ $domande_stmt->bind_param("i", $checklist_componente_progetto_id);
 $domande_stmt->execute();
 $domande = $domande_stmt->get_result();
 ?>
-
 <style>
     html, body {
         height: 100%;
@@ -69,14 +90,25 @@ $domande = $domande_stmt->get_result();
         padding: 20px;
     }
 
-    .media-display img {
-        max-width: 150px;
-        margin-top: 10px;
-        cursor: pointer;
+    /* Stile per blocchi di domanda e risposta */
+    .question-block {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
     }
 
-    .media-display video, .media-display audio {
-        max-width: 100%;
+    .question-block h5 {
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    /* Stile per immagini e video con dimensioni uniformi */
+    .media-fixed {
+        max-width: 150px;
+        max-height: 150px;
+        object-fit: cover;
         margin-top: 10px;
         cursor: pointer;
     }
@@ -89,23 +121,6 @@ $domande = $domande_stmt->get_result();
     .media-display a:hover {
         text-decoration: underline;
     }
-
-    .img-container {
-        margin-top: 10px;
-    }
-
-    .img-thumbnail {
-        max-width: 100%;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
-
-    .img-thumbnail:hover {
-        transform: scale(1.05);
-    }
 </style>
 
 <div class="full-screen-container">
@@ -113,7 +128,6 @@ $domande = $domande_stmt->get_result();
         <h2><?= htmlspecialchars($checklist['nome'], ENT_QUOTES, 'UTF-8') ?></h2>
         <p><?= htmlspecialchars($checklist['descrizione'], ENT_QUOTES, 'UTF-8') ?></p>
 
-        <!-- Contenitore per le domande e risposte -->
         <form id="checklistForm" method="post" action="salva_risposte.php" enctype="multipart/form-data">
             <input type="hidden" name="progetto_id" value="<?= $progetto_id ?>">
             <input type="hidden" name="componente_id" value="<?= $componente_id ?>">
@@ -122,28 +136,25 @@ $domande = $domande_stmt->get_result();
             <input type="hidden" name="linea_prodotto_id" value="<?= $linea_prodotto_id ?>">
 
             <?php while ($domanda = $domande->fetch_assoc()): ?>
-                <div class="question-container mb-4">
+                <div class="question-block">
                     <h5><?= htmlspecialchars($domanda['domanda_testo'], ENT_QUOTES, 'UTF-8') ?></h5>
 
-                    <!-- Se la domanda ha un valore multimediale -->
                     <?php if (!empty($domanda['valore_media_url'])): ?>
                         <div class="media-display">
                             <?php if (strpos($domanda['valore_media_url'], '.pdf') === false): ?>
-                                <!-- Mostra immagine o video -->
                                 <?php if (strpos($domanda['valore_media_url'], '.mp4') !== false): ?>
                                     <a href="<?= htmlspecialchars($domanda['valore_media_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank">
-                                        <video controls>
+                                        <video controls class="media-fixed">
                                             <source src="<?= htmlspecialchars($domanda['valore_media_url'], ENT_QUOTES, 'UTF-8') ?>" type="video/mp4">
                                             Il tuo browser non supporta la visualizzazione video.
                                         </video>
                                     </a>
                                 <?php else: ?>
                                     <div class="img-container">
-                                        <img src="<?= htmlspecialchars($domanda['valore_media_url'], ENT_QUOTES, 'UTF-8') ?>" alt="Immagine" class="img-thumbnail img-responsive mb-3" onclick="openModalImage('<?= htmlspecialchars($domanda['valore_media_url'], ENT_QUOTES, 'UTF-8') ?>')" />
+                                        <img src="<?= htmlspecialchars($domanda['valore_media_url'], ENT_QUOTES, 'UTF-8') ?>" alt="Immagine" class="img-thumbnail img-responsive media-fixed" onclick="openModalImage('<?= htmlspecialchars($domanda['valore_media_url'], ENT_QUOTES, 'UTF-8') ?>')" />
                                     </div>
                                 <?php endif; ?>
                             <?php else: ?>
-                                <!-- PDF -->
                                 <a href="<?= htmlspecialchars($domanda['valore_media_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank"><i class="fas fa-file-pdf mb-3"></i> Visualizza PDF</a>
                             <?php endif; ?>
                         </div>
@@ -159,7 +170,19 @@ $domande = $domande_stmt->get_result();
                         <?php if (!empty($domanda['risposta_media_url'])): ?>
                             <div class="media-display">
                                 <a href="<?= htmlspecialchars($domanda['risposta_media_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank">
-                                    <img src="<?= htmlspecialchars($domanda['risposta_media_url'], ENT_QUOTES, 'UTF-8') ?>" class="img-thumbnail mt-2">
+                                    <img src="<?= htmlspecialchars($domanda['risposta_media_url'], ENT_QUOTES, 'UTF-8') ?>" class="img-thumbnail media-fixed mt-2">
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    <?php elseif ($domanda['tipo_risposta'] == 'multiplo'): ?>
+                        <div class="input-group mb-3">
+                            <input type="text" name="risposte_text[<?= $domanda['domanda_id'] ?>]" value="<?= htmlspecialchars($domanda['risposta_testo'], ENT_QUOTES, 'UTF-8') ?>" class="form-control" placeholder="Inserisci risposta testuale">
+                            <input type="file" name="risposte_media[<?= $domanda['domanda_id'] ?>]" class="form-control" aria-describedby="inputGroupFileAddon04">
+                        </div>
+                        <?php if (!empty($domanda['risposta_media_url'])): ?>
+                            <div class="media-display">
+                                <a href="<?= htmlspecialchars($domanda['risposta_media_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank">
+                                    <img src="<?= htmlspecialchars($domanda['risposta_media_url'], ENT_QUOTES, 'UTF-8') ?>" class="img-thumbnail media-fixed mt-2">
                                 </a>
                             </div>
                         <?php endif; ?>
@@ -167,15 +190,16 @@ $domande = $domande_stmt->get_result();
                 </div>
             <?php endwhile; ?>
 
-            <!-- Pulsante per salvare tutte le risposte -->
-            <button type="submit" class="btn btn-primary w-100 mt-4 btn-rounded">Salva Risposte</button>
+            <div class="d-flex justify-content-between mb-4">
+                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=<?= $componente_radice ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-primary btn-rounded">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <button type="submit" class="btn btn-primary  btn-rounded">Salva Risposte</button>
+            </div>
+
         </form>
 
-        <!-- Pulsante per tornare alla pagina componenti -->
-        <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente_id=<?= $componente_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-           class="btn btn-outline-primary mt-5">
-            <i class="fas fa-arrow-left"></i> Torna alla pagina precedente
-        </a>
+
     </div>
 
     <footer class="bg-white text-black text-center py-3">
@@ -205,3 +229,5 @@ $domande = $domande_stmt->get_result();
         myModal.show();
     }
 </script>
+
+

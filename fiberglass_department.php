@@ -21,7 +21,7 @@ $linea_prodotto_id = $_GET['linea_prodotto_id'];
 
 // Recupera i dettagli del progetto dal database
 $stmt = $conn->prepare("
-    SELECT p.cin, p.stato, p.consegna, p.immagine,
+    SELECT p.numero_matricola, p.cin, p.stato, p.consegna, p.immagine,
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            p.id AS id_progetto
@@ -127,13 +127,17 @@ $progetto = $stmt->get_result()->fetch_assoc();
             max-width: 100%;
         }
     }
+
+    .card {
+        border:none;
+    }
 </style>
 
 <div class="full-screen-container">
     <div class="container">
         <!-- Blocco Dettagli -->
         <div class="details-block shadow-sm">
-            <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') . " #" . $progetto_id ?></h3>
+            <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') . " #" . htmlspecialchars($progetto['numero_matricola'], ENT_QUOTES, 'UTF-8') ?></h3>
             <!-- Blocco Progresso -->
             <div class="progress-block">
                 <div class="progress-bar">
@@ -146,16 +150,46 @@ $progetto = $stmt->get_result()->fetch_assoc();
             <div class="action-buttons">
                 <a href="checklist.php?progetto_id=<?= $progetto_id ?>&componente=Secondari&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                    class="btn btn-primary btn-rounded"><i class="fas fa-clipboard-check"></i> Verifica materiale</a>
-                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=scafo&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                   class="btn btn-outline-primary"><i class="fas fa-ship"></i> Scafo completo</a>
-                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=coperta&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                   class="btn btn-outline-primary"><i class="fas fa-layer-group"></i> Coperta completa</a>
-                <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=secondari&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                   class="btn btn-outline-primary"><i class="fas fa-cogs"></i> Secondari</a>
             </div>
         </div>
-        <a href="produzione_dashboard.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-outline-primary mt-4">
-            <i class="fas fa-arrow-left"></i> Torna Alla Dashboard Produzione
+
+        <!-- Sezione con le card dei componenti -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <img src="uploads/scafo.png" class="card-img-top" alt="Immagine Scafo">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Scafo Completo</h5>
+                        <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=scafo&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                           class="btn btn-outline-primary btn-rounded">Vai alle checklist</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <img src="uploads/coperta.png" class="card-img-top" alt="Immagine Coperta">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Coperta Completa</h5>
+                        <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=coperta&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                           class="btn btn-outline-primary btn-rounded">Vai alle checklist</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <img src="uploads/Secondari.png" class="card-img-top" alt="Immagine Secondari">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Secondari</h5>
+                        <a href="componenti.php?progetto_id=<?= $progetto_id ?>&componente=secondari&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                           class="btn btn-outline-primary btn-rounded">Vai alle checklist</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <a href="produzione_dashboard.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+           class="btn btn-primary mt-4 btn-rounded">
+            <i class="fas fa-arrow-left"></i>
         </a>
     </div>
 </div>
@@ -164,6 +198,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
 <footer class="bg-white text-black text-center py-3">
     &copy; 2024 GENE.SYS. Tutti i diritti riservati.
 </footer>
+
 
 </body>
 </html>

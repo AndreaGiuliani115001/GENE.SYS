@@ -51,7 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 <style>
-    .full-screen-container {
+
+
+    .logo-image {
+        width: 100px;  /* Imposta la larghezza fissa */
+        height: 100px; /* Imposta l'altezza fissa */
+        object-fit: contain; /* Adatta l'immagine senza distorcerla */
+        margin-bottom: 10px;
+    }
+
+.full-screen-container {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -173,6 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="company-list">
                 <?php while ($row = $clienti->fetch_assoc()): ?>
                     <div class="company-card">
+                        <img src="<?= htmlspecialchars($row['logo'], ENT_QUOTES, 'UTF-8') ?>" class="logo-image mb-4" alt="Progetto">
                         <h5><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
                         <a href="master_linee_prodotti.php?azienda_id=<?= $row['id'] ?>"
                            class="btn btn-outline-primary btn-rounded">
@@ -189,12 +199,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endwhile; ?>
             </div>
         <?php endif; ?>
-        <div class="d-flex justify-content-end mb-4 mt-5">
+        <div class="d-flex justify-content-end mb-2 mt-4">
             <button class="btn btn-primary me-2 btn-rounded" onclick="toggleForm('campoOperativoForm')">
-                <i class="fas fa-plus"></i> Nuovo Campo Operativo
+                <i class="fas fa-plus"></i> <i class="fas fa-stream"></i>
             </button>
             <button class="btn btn-primary  btn-rounded" onclick="toggleForm('aziendaForm')">
-                <i class="fas fa-plus"></i> Nuova Azienda
+                <i class="fas fa-plus"></i> <i class="fas fa-building"></i>
             </button>
         </div>
 

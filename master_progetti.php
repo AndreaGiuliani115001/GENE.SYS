@@ -16,9 +16,13 @@ if ($_SESSION['ruolo'] != 'master' || (!is_null($_SESSION['azienda_id']) && $_GE
 $azienda_id = $_GET['azienda_id'];
 $linea_prodotto_id = $_GET['linea_prodotto_id'];
 
+// Conta i progetti totali per l'azienda e la linea di prodotto selezionate
+$count_progetti = $conn->query("SELECT COUNT(*) as totale_progetti FROM progetti WHERE azienda_id = $azienda_id AND linea_prodotto_id = $linea_prodotto_id")->fetch_assoc()['totale_progetti'];
+
+
 // Recupera i progetti associati all'azienda e alla linea di prodotto selezionate
 $stmt = $conn->prepare("
-    SELECT p.nome_cliente, p.cin, p.stato, p.consegna, p.immagine, 
+    SELECT p.numero_matricola, p.nome_cliente, p.cin, p.stato, p.consegna, p.immagine, 
            a.nome AS azienda, 
            lp.nome AS linea_prodotto, 
            p.id AS id_progetto
@@ -106,6 +110,24 @@ $result = $stmt->get_result();
         white-space: nowrap; /* Evita che il testo vada a capo */
     }
 
+    .stat-box {
+        background-color: #fff;
+        padding: 20px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-box i {
+        font-size: 36px;
+        color: #27bcbc;
+        margin-bottom: 10px;
+    }
+
+    .stat-box h4 {
+        font-size: 24px;
+        margin-bottom: 0;
+    }
 
 </style>
 
@@ -118,9 +140,15 @@ $result = $stmt->get_result();
             <div class="alert alert-info mt-3">Nessuna progetto trovato per questa azienda.</div>
         <?php endif; ?>
 
+        <!-- Blocco per il conteggio totale delle linee di prodotto -->
+        <div class="stat-box mt-5 shadow-sm">
+            <i class="fas fa-folder"></i>
+            <h4><?= $count_progetti ?> Progetti</h4>
+        </div>
+
         <div class="row">
             <?php while ($progetto = $result->fetch_assoc()):
-                $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['id_progetto'];
+                $nome_progetto = $progetto['azienda'] . " " . $progetto['linea_prodotto'] . " #" . $progetto['numero_matricola'];
                 ?>
                 <div class="col-md-4 mb-4 mt-3">
                     <div class="card">
@@ -129,7 +157,8 @@ $result = $stmt->get_result();
                         <div class="card-body">
                             <h5 class="card-title mb-4"><?= htmlspecialchars($nome_progetto, ENT_QUOTES, 'UTF-8') ?></h5>
                             <p class="card-text">
-                                <strong>Cliente:</strong> <?= htmlspecialchars($progetto['nome_cliente'], ENT_QUOTES, 'UTF-8') ?></p>
+                                <strong>Cliente:</strong> <?= htmlspecialchars($progetto['nome_cliente'], ENT_QUOTES, 'UTF-8') ?>
+                            </p>
                             <p class="card-text">
                                 <strong>CIN:</strong> <?= htmlspecialchars($progetto['cin'], ENT_QUOTES, 'UTF-8') ?></p>
                             <p class="card-text">
@@ -153,7 +182,8 @@ $result = $stmt->get_result();
                                    class="btn btn-outline-warning btn-rounded"><i class="fas fa-edit"></i></a>
                                 <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                                    class="btn btn-outline-danger btn-rounded"
-                                   onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');"><i class="fas fa-trash"></i></a>
+                                   onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');"><i
+                                            class="fas fa-trash"></i></a>
                             </div>
                         </div>
 
@@ -162,9 +192,9 @@ $result = $stmt->get_result();
             <?php endwhile; ?>
         </div>
         <div class="d-flex justify-content-between">
-        <a href="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>" class="btn btn-primary btn-rounded">
-            <i class="fas fa-arrow-left"></i>
-        </a>
+            <a href="master_linee_prodotti.php?azienda_id=<?= $azienda_id ?>" class="btn btn-primary btn-rounded">
+                <i class="fas fa-arrow-left"></i>
+            </a>
             <a href="aggiungi_progetto.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
                class="btn btn-primary btn-rounded "><i class="fas fa-plus"></i></a>
         </div>
