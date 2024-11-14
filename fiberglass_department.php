@@ -36,6 +36,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
 ?>
 
 <style>
+    /* Codice esistente */
     html, body {
         height: 100%;
         margin: 0;
@@ -46,13 +47,11 @@ $progetto = $stmt->get_result()->fetch_assoc();
         flex-direction: column;
         justify-content: space-between;
         min-height: 100vh;
-        padding: 20px;
     }
 
     .details-block {
         padding: 20px;
         border-radius: 8px;
-        margin-bottom: 20px;
         background-color: white;
     }
 
@@ -72,13 +71,6 @@ $progetto = $stmt->get_result()->fetch_assoc();
         height: 30px;
     }
 
-    .step-status {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 10px;
-        font-weight: bold;
-    }
-
     .step-status div {
         text-align: center;
         font-size: 14px;
@@ -87,18 +79,6 @@ $progetto = $stmt->get_result()->fetch_assoc();
     .action-buttons {
         margin-top: 20px;
         text-align: center;
-    }
-
-    .action-buttons a {
-        margin: 5px;
-        padding: 10px 20px;
-        border-radius: 50px;
-        font-size: 16px;
-    }
-
-    .project-image {
-        text-align: center;
-        margin-top: 20px;
     }
 
     .project-image img {
@@ -114,29 +94,23 @@ $progetto = $stmt->get_result()->fetch_assoc();
         padding: 20px;
     }
 
-    @media (max-width: 768px) {
-        .step-status {
-            flex-direction: column;
-        }
-
-        .details-block {
-            text-align: center;
-        }
-
-        .project-image img {
-            max-width: 100%;
-        }
+    .card {
+        border: none;
     }
 
-    .card {
-        border:none;
+    /* Aggiunta di margine tra le card sui dispositivi mobili */
+    @media (max-width: 768px) {
+        .col-md-4 {
+            margin-bottom: 20px;
+        }
     }
 </style>
+
 
 <div class="full-screen-container">
     <div class="container">
         <!-- Blocco Dettagli -->
-        <div class="details-block shadow-sm">
+        <div class="details-block shadow-sm mt-4">
             <h3><?= htmlspecialchars($progetto['azienda'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($progetto['linea_prodotto'], ENT_QUOTES, 'UTF-8') . " #" . htmlspecialchars($progetto['numero_matricola'], ENT_QUOTES, 'UTF-8') ?></h3>
             <!-- Blocco Progresso -->
             <div class="progress-block">
@@ -156,7 +130,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
         <!-- Sezione con le card dei componenti -->
         <div class="row mt-4">
             <div class="col-md-4">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm">
                     <img src="uploads/scafo.png" class="card-img-top" alt="Immagine Scafo">
                     <div class="card-body text-center">
                         <h5 class="card-title">Scafo Completo</h5>
@@ -166,7 +140,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm">
                     <img src="uploads/coperta.png" class="card-img-top" alt="Immagine Coperta">
                     <div class="card-body text-center">
                         <h5 class="card-title">Coperta Completa</h5>
@@ -176,7 +150,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm">
                     <img src="uploads/Secondari.png" class="card-img-top" alt="Immagine Secondari">
                     <div class="card-body text-center">
                         <h5 class="card-title">Secondari</h5>
@@ -188,7 +162,7 @@ $progetto = $stmt->get_result()->fetch_assoc();
         </div>
 
         <a href="produzione_dashboard.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-           class="btn btn-primary mt-4 btn-rounded">
+           class="btn btn-primary mt-2 mb-4 btn-rounded">
             <i class="fas fa-arrow-left"></i>
         </a>
     </div>

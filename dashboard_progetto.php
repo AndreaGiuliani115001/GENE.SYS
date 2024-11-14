@@ -6,6 +6,7 @@ include('connection.php');
 
 // Verifica se l'utente è loggato
 if (!isset($_SESSION['ruolo'])) {
+    $_SESSION['redirect_to'] = $_SERVER['REQUEST_URI'];
     header("Location: login.php");
     exit;
 }

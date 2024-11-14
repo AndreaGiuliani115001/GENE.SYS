@@ -1,6 +1,5 @@
 <?php
 include 'navbar.php';
-/** @var mysqli $conn */
 include('connection.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -12,7 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
-
 
     if ($stmt->num_rows > 0) {
         $stmt->bind_result($user_id, $hashed_password, $ruolo, $azienda_id);
@@ -27,19 +25,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['loggedin'] = true;
             $_SESSION['username'] = $username;
 
-            // Reindirizza in base al ruolo
-            if ($ruolo == 'master') {
-                if ($azienda_id === null) {
-                    header("Location: master_dashboard.php"); // Admin globale
-                } else {
-                    header("Location: master_linee_prodotti.php?azienda_id=$azienda_id"); // Admin aziendale
+            // Controlla se esiste un URL di reindirizzamento
+            if (isset($_SESSION['redirect_to'])) {
+                $redirect_to = $_SESSION['redirect_to'];
+                unset($_SESSION['redirect_to']); // Rimuovi il link dalla sessione
+                header("Location: $redirect_to");
+            } else {
+                // Reindirizza in base al ruolo
+                if ($ruolo == 'master') {
+                    if ($azienda_id === null) {
+                        header("Location: master_dashboard.php");
+                    } else {
+                        header("Location: master_linee_prodotti.php?azienda_id=$azienda_id");
+                    }
+                } else if ($ruolo == 'operatore') {
+                    header("Location: operatore_dashboard.php");
                 }
-            } else if ($ruolo == 'operatore') {
-                header("Location: operatore_dashboard.php");
             }
             exit;
-
-
         } else {
             $error = "Credenziali errate.";
         }
@@ -53,9 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <style>
     body {
-        background-color: #f8f9fa; /* Colore simile al sito di esempio */
+        background-color: #f8f9fa;
     }
-
     .login-container {
         background-color: white;
         border-radius: 8px;
@@ -63,22 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         padding: 40px;
         margin-top: 80px;
     }
-
     h2 {
         font-weight: bold;
     }
-
     .btn-primary {
-        background-color: #17a2b8; /* Colore azzurro simile al bottone 'Contact us' */
+        background-color: #17a2b8;
         border-color: #17a2b8;
     }
-
     .btn-primary:hover {
         background-color: #138496;
         border-color: #117a8b;
     }
-
-    /* Stile dell'alert di errore */
     .alert-danger {
         background-color: #f8d7da;
         color: #721c24;
@@ -105,8 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         <?php } ?>
     </div>
-
 </div>
 </body>
 </html>
-
