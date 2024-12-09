@@ -91,7 +91,6 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
     }
 
 
-
 </style>
 
 <div class="full-screen-container">
@@ -116,8 +115,8 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
                             <i class="fas fa-tools fa-3x mb-3"></i>
                             <h5 class="card-title">Fiberglass Department</h5>
                             <a href="fiberglass_department.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-outline-primary btn-rounded">
-                                Visualizza
+                               class="btn btn-primary btn-rounded">
+                                <i class="fas fa-eye"></i> Visualizza
                             </a>
                         </div>
                     </div>
@@ -128,8 +127,8 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
                             <i class="fas fa-couch fa-3x mb-3"></i>
                             <h5 class="card-title">Outfitting Department</h5>
                             <a href="outfitting_department.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-outline-primary btn-rounded">
-                                Visualizza
+                               class="btn btn-primary btn-rounded">
+                                <i class="fas fa-eye"></i> Visualizza
                             </a>
                         </div>
                     </div>
@@ -142,7 +141,7 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
                             <i class="fas fa-cogs fa-3x mb-3"></i>
                             <h5 class="card-title">Assembly Line</h5>
                             <a href="assembly_line.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-outline-primary btn-rounded">
+                               class="btn btn-primary btn-rounded">
                                 Visualizza
                             </a>
                         </div>
@@ -154,8 +153,8 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
                             <i class="fas fa-check-circle fa-3x mb-3"></i>
                             <h5 class="card-title">Quality Control</h5>
                             <a href="quality_control.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-outline-primary btn-rounded">
-                                Visualizza
+                               class="btn btn-primary btn-rounded">
+                                <i class="fas fa-eye"></i> Visualizza
                             </a>
                         </div>
                     </div>
@@ -168,8 +167,8 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
                             <i class="fas fa-battery-full fa-3x mb-3"></i>
                             <h5 class="card-title">Battery Production</h5>
                             <a href="battery_production.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-outline-primary btn-rounded">
-                                Visualizza
+                               class="btn btn-primary btn-rounded">
+                                <i class="fas fa-eye"></i> Visualizza
                             </a>
                         </div>
                     </div>
@@ -182,8 +181,8 @@ $campo_operativo_id = $progetto['campo_operativo_id'];
                             <h6 class="card-title"><i class="fas fa-microchip"></i> IoT device</h6>
 
                             <a href="status.php?progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                               class="btn btn-outline-primary btn-rounded">
-                                Visualizza
+                               class="btn btn-primary btn-rounded">
+                                <i class="fas fa-eye"></i> Visualizza
                             </a>
                         </div>
                     </div>

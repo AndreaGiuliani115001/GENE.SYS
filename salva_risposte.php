@@ -1,118 +1,149 @@
 <?php
+include 'connection.php'; // Connessione al database
 session_start();
-include('connection.php');
 
-// Verifica se l'utente è loggato
+// Controlla se l'utente è loggato
 if (!isset($_SESSION['ruolo'])) {
     header("Location: login.php");
     exit;
 }
 
-// Recupera i dati inviati dal form
+// Recupera i dati dal form
 $progetto_id = $_POST['progetto_id'];
 $componente_id = $_POST['componente_id'];
+$nome_componente = $_POST['nome_componente'];
+$checklist_id = $_POST['checklist_id'];
 $checklist_componente_progetto_id = $_POST['checklist_componente_progetto_id'];
+$risposte = $_POST['risposte'] ?? []; // Risposte di tipo testo o data
+$risposte_media = $_FILES['risposte'] ?? []; // Risposte di tipo file
+$domanda_checklist_componente_progetto_ids = $_POST['domanda_checklist_componente_progetto_ids'] ?? []; // ID domande relazionate alla checklist
 $azienda_id = $_POST['azienda_id'];
 $linea_prodotto_id = $_POST['linea_prodotto_id'];
-$risposte = $_POST['risposte'];
+$componente_nome = $_POST['componente_nome']; // Nome del componente (per il reindirizzamento)
 
-// Directory per il caricamento dei file multimediali
-$upload_dir = 'uploads/';
+// Debug iniziale
+echo "<pre>";
+echo "Progetto ID: $progetto_id\n";
+echo "Componente ID: $componente_id\n";
+echo "Checklist Componente Progetto ID: $checklist_componente_progetto_id\n";
+echo "Risposte Testuali/Data:\n";
+print_r($risposte);
+echo "Domanda Checklist Componente Progetto IDs:\n";
+print_r($domanda_checklist_componente_progetto_ids);
+echo "File Uploads:\n";
+print_r($risposte_media);
+echo "</pre>";
 
-// Controllo della cartella uploads
-if (!is_dir($upload_dir)) {
-    mkdir($upload_dir, 0777, true);
-}
+// Avvia la transazione
+$conn->begin_transaction();
 
-// Ciclo attraverso le risposte
-foreach ($risposte as $domanda_id => $risposta) {
-    // Recupera il tipo di contenuto della domanda
-    $stmt = $conn->prepare("SELECT tipo_risposta FROM domande WHERE id = ?");
-    $stmt->bind_param("i", $domanda_id);
-    $stmt->execute();
-    $tipo_risposta = $stmt->get_result()->fetch_assoc()['tipo_risposta'];
+try {
+    // Salva risposte
+    foreach ($risposte as $domanda_id => $risposta_valore) {
+        if (!empty($risposta_valore)) {
+            $domanda_checklist_componente_progetto_id = $domanda_checklist_componente_progetto_ids[$domanda_id];
 
-    $valore_testo = null;
-    $valore_data = null;
-    $valore_media_url = null;
+            // Controlla se esiste già una risposta associata a questa domanda
+            $stmt_check = $conn->prepare("
+                SELECT r.id, r.testo, r.valore_data, r.valore_media_url 
+                FROM risposta_domanda_checklist_componente_progetto rdc
+                JOIN risposte r ON rdc.risposta_id = r.id
+                WHERE rdc.domanda_checklist_componente_progetto_id = ?
+            ");
+            $stmt_check->bind_param("i", $domanda_checklist_componente_progetto_id);
+            $stmt_check->execute();
+            $result = $stmt_check->get_result();
+            $existing_response = $result->fetch_assoc();
 
-    // Gestione del salvataggio in base al tipo di risposta
-    if ($tipo_risposta == 'testo') {
-        $valore_testo = $risposta;
-    } elseif ($tipo_risposta == 'data') {
-        $valore_data = $risposta;
-    } elseif (in_array($tipo_risposta, ['immagine', 'video', 'file'])) {
-        // Gestione dei file caricati
-        if (isset($_FILES['risposte']['tmp_name'][$domanda_id]) && $_FILES['risposte']['error'][$domanda_id] == UPLOAD_ERR_OK) {
-            $file_name = uniqid() . '_' . basename($_FILES['risposte']['name'][$domanda_id]);
-            $upload_file = $upload_dir . $file_name;
+            if ($existing_response) {
+                // Aggiorna solo i campi vuoti
+                $response_id = $existing_response['id'];
+                if (empty($existing_response['testo']) && !empty($risposta_valore)) {
+                    $stmt_update = $conn->prepare("UPDATE risposte SET testo = ? WHERE id = ?");
+                    $stmt_update->bind_param("si", $risposta_valore, $response_id);
+                    $stmt_update->execute();
+                }
+            } else {
+                // Inserisci una nuova risposta
+                $stmt_risposta = $conn->prepare("
+                    INSERT INTO risposte (tipo_contenuto, testo) VALUES ('testo', ?)
+                ");
+                $stmt_risposta->bind_param("s", $risposta_valore);
+                $stmt_risposta->execute();
+                $new_risposta_id = $stmt_risposta->insert_id;
 
-            if (move_uploaded_file($_FILES['risposte']['tmp_name'][$domanda_id], $upload_file)) {
-                $valore_media_url = $upload_file;
+                // Associa la risposta alla domanda
+                $stmt_associazione = $conn->prepare("
+                    INSERT INTO risposta_domanda_checklist_componente_progetto (domanda_checklist_componente_progetto_id, risposta_id) 
+                    VALUES (?, ?)
+                ");
+                $stmt_associazione->bind_param("ii", $domanda_checklist_componente_progetto_id, $new_risposta_id);
+                $stmt_associazione->execute();
             }
         }
     }
 
-    // Verifica se esiste già una risposta per questa domanda e checklist_componente_progetto_id
-    $stmt = $conn->prepare("
-    SELECT r.id FROM risposte r
-    JOIN risposta_domanda_checklist_componente_progetto rdc 
-    ON r.id = rdc.risposta_id
-    WHERE rdc.domanda_checklist_componente_progetto_id = ?");
-    $stmt->bind_param("i", $checklist_componente_progetto_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Salva risposte di tipo file
+    foreach ($_FILES['risposte']['name'] as $domanda_id => $file_name) {
+        if (!empty($file_name)) {
+            $domanda_checklist_componente_progetto_id = $domanda_checklist_componente_progetto_ids[$domanda_id];
+            $file_tmp = $_FILES['risposte']['tmp_name'][$domanda_id];
+            $target_dir = "uploads/";
+            $target_file = $target_dir . basename($file_name);
 
+            // Carica il file
+            if (move_uploaded_file($file_tmp, $target_file)) {
+                // Controlla se esiste già una risposta associata a questa domanda
+                $stmt_check = $conn->prepare("
+                    SELECT r.id, r.testo, r.valore_data, r.valore_media_url 
+                    FROM risposta_domanda_checklist_componente_progetto rdc
+                    JOIN risposte r ON rdc.risposta_id = r.id
+                    WHERE rdc.domanda_checklist_componente_progetto_id = ?
+                ");
+                $stmt_check->bind_param("i", $domanda_checklist_componente_progetto_id);
+                $stmt_check->execute();
+                $result = $stmt_check->get_result();
+                $existing_response = $result->fetch_assoc();
 
-    if ($result->num_rows > 0) {
-        // Se esiste già una risposta, aggiornala
-        $risposta_row = $result->fetch_assoc();
-        $risposta_id = $risposta_row['id'];
+                if ($existing_response) {
+                    // Aggiorna solo i campi vuoti
+                    $response_id = $existing_response['id'];
+                    if (empty($existing_response['valore_media_url'])) {
+                        $stmt_update = $conn->prepare("UPDATE risposte SET valore_media_url = ? WHERE id = ?");
+                        $stmt_update->bind_param("si", $target_file, $response_id);
+                        $stmt_update->execute();
+                    }
+                } else {
+                    // Inserisci una nuova risposta
+                    $stmt_risposta = $conn->prepare("
+                        INSERT INTO risposte (tipo_contenuto, valore_media_url) VALUES ('file', ?)
+                    ");
+                    $stmt_risposta->bind_param("s", $target_file);
+                    $stmt_risposta->execute();
+                    $new_risposta_id = $stmt_risposta->insert_id;
 
-        $update_stmt = $conn->prepare("
-            UPDATE risposte 
-            SET valore_testo = ?, valore_data = ?, valore_media_url = ? 
-            WHERE id = ?");
-        $update_stmt->bind_param("sssi", $valore_testo, $valore_data, $valore_media_url, $risposta_id);
-        $update_stmt->execute();
-    } else {
-        // Se non esiste una risposta, inseriscine una nuova
-        $insert_stmt = $conn->prepare("
-            INSERT INTO risposte (valore_testo, valore_data, valore_media_url, tipo_contenuto) 
-            VALUES (?, ?, ?, ?)");
-        $insert_stmt->bind_param("ssss", $valore_testo, $valore_data, $valore_media_url, $tipo_risposta);
-        $insert_stmt->execute();
-        $risposta_id = $conn->insert_id;
-
-        // Recupera l'ID della relazione domanda_checklist_componente_progetto
-        $select_rel_stmt = $conn->prepare("
-    SELECT id 
-    FROM domanda_checklist_componente_progetto 
-    WHERE domanda_id = ? AND checklist_componente_progetto_id = ?");
-        $select_rel_stmt->bind_param("ii", $domanda_id, $checklist_componente_progetto_id);
-        $select_rel_stmt->execute();
-        $rel_result = $select_rel_stmt->get_result();
-
-// Controlla se la relazione esiste
-        if ($rel_result->num_rows > 0) {
-            $rel_row = $rel_result->fetch_assoc();
-            $domanda_checklist_componente_progetto_id = $rel_row['id']; // Ottieni l'ID corretto
-
-            // Ora puoi inserire la risposta collegata all'ID corretto
-            $insert_rel_stmt = $conn->prepare("
-        INSERT INTO risposta_domanda_checklist_componente_progetto (risposta_id, domanda_checklist_componente_progetto_id) 
-        VALUES (?, ?)");
-            $insert_rel_stmt->bind_param("ii", $risposta_id, $domanda_checklist_componente_progetto_id);
-            $insert_rel_stmt->execute();
-        } else {
-            echo "Errore: Relazione domanda-checklist-componente non trovata.";
-            exit;
+                    // Associa la risposta alla domanda
+                    $stmt_associazione = $conn->prepare("
+                        INSERT INTO risposta_domanda_checklist_componente_progetto (domanda_checklist_componente_progetto_id, risposta_id) 
+                        VALUES (?, ?)
+                    ");
+                    $stmt_associazione->bind_param("ii", $domanda_checklist_componente_progetto_id, $new_risposta_id);
+                    $stmt_associazione->execute();
+                }
+            }
         }
-
     }
-}
 
-// Reindirizza alla pagina della checklist
-header("Location: checklist.php?componente_id=" . $componente_id . "&progetto_id=" . $progetto_id . "&azienda_id=" . $azienda_id . "&linea_prodotto_id=" . $linea_prodotto_id);
-exit;
+    // Commit della transazione
+    $conn->commit();
+
+    // Reindirizzamento corretto
+    header("Location: checklist.php?checklist_id=$checklist_id&componente_id=$componente_id&componente=$nome_componente&progetto_id=$progetto_id&azienda_id=$azienda_id&linea_prodotto_id=$linea_prodotto_id");
+    exit;
+
+} catch (Exception $e) {
+    // Rollback in caso di errore
+    $conn->rollback();
+    die("Errore durante il salvataggio delle risposte: " . $e->getMessage());
+}
 ?>

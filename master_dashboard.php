@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <img src="<?= htmlspecialchars($row['logo'], ENT_QUOTES, 'UTF-8') ?>" class="logo-image mb-4" alt="Progetto">
                         <h5><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
                         <a href="master_linee_prodotti.php?azienda_id=<?= $row['id'] ?>"
-                           class="btn btn-outline-primary btn-rounded">
+                           class="btn btn-primary btn-rounded">
                             <i class="fas fa-stream"></i> Linee di Prodotto
                         </a><br>
                         <a href="modifica_azienda.php?azienda_id=<?= $row['id'] ?>" class="btn btn-warning btn-rounded">

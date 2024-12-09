@@ -83,7 +83,17 @@ $componenti = $componente_stmt->get_result();
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
         margin: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
+
+    .plus-icon {
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
 
     .alert-info {
         padding: 10px;
@@ -102,7 +112,10 @@ $componenti = $componente_stmt->get_result();
 
         <?php while ($comp = $componenti->fetch_assoc()): ?>
             <div class="component-card">
-                <h4 class="component-header"><?= htmlspecialchars($comp['componente_nome'], ENT_QUOTES, 'UTF-8') ?></h4>
+                <h4 class="component-header"><?= htmlspecialchars($comp['componente_nome'], ENT_QUOTES, 'UTF-8') ?>
+                    <a href="aggiungi_checklist.php?componente_id=<?= $componente_id ?>&componente=<?= $comp['componente_nome'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                       class="btn btn-primary btn-rounded"><i class="fas fa-plus"></i></a>
+                </h4>
 
                 <?php
                 // Recupera le checklist specifiche per questo progetto e componente
@@ -127,8 +140,19 @@ $componenti = $componente_stmt->get_result();
                                     <i class="fas fa-clipboard-check"></i>
                                 </div>
                                 <h6><?= htmlspecialchars($checklist['checklist_nome'], ENT_QUOTES, 'UTF-8') ?></h6>
-                                <a href="checklist.php?checklist_id=<?= $checklist['checklist_id'] ?>&componente_id=<?= $componente_id ?>&componente=<?= $comp['componente_nome'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                                   class="btn btn-primary btn-sm btn-rounded mb-2">Visualizza</a>
+                                <div class="btn-group">
+                                    <a href="checklist.php?checklist_id=<?= $checklist['checklist_id'] ?>&componente_id=<?= $componente_id ?>&componente=<?= $comp['componente_nome'] ?>&progetto_id=<?= $progetto_id ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
+                                       class="btn btn-primary btn-sm btn-rounded"><i class="fas fa-eye"></i></a>
+                                    <a href="modifica_macro.php?id=<?= $macro['id'] ?>"
+                                       class="btn btn-warning btn-sm btn-rounded" title="Modifica">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="elimina_macro.php?id=<?= $macro['id'] ?>"
+                                       class="btn btn-danger btn-sm btn-rounded" title="Elimina"
+                                       onclick="return confirm('Sei sicuro di voler eliminare questa macro-categoria?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
                             </div>
                         <?php endwhile; ?>
                     </div>

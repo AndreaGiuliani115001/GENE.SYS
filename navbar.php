@@ -28,6 +28,7 @@ session_start();
             background-color: transparent;
         }
 
+
         .navbar:hover {
             background-color: #fff !important;
             transition: background-color 0.3s ease;

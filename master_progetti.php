@@ -175,13 +175,13 @@ $result = $stmt->get_result();
                             </div>
 
                             <!-- Contenitore dei bottoni -->
-                            <div class="button-group">
+                            <div class="btn-group">
                                 <a href="dashboard_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                                   class="btn btn-outline-primary btn-rounded"><i class="fas fa-eye"></i></a>
+                                   class="btn btn-primary btn-rounded"><i class="fas fa-eye"></i></a>
                                 <a href="modifica_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                                   class="btn btn-outline-warning btn-rounded"><i class="fas fa-edit"></i></a>
+                                   class="btn btn-warning btn-rounded"><i class="fas fa-edit"></i></a>
                                 <a href="elimina_progetto.php?progetto_id=<?= $progetto['id_progetto'] ?>&azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>"
-                                   class="btn btn-outline-danger btn-rounded"
+                                   class="btn btn-danger btn-rounded"
                                    onclick="return confirm('Sei sicuro di voler eliminare questo progetto?');"><i
                                             class="fas fa-trash"></i></a>
                             </div>

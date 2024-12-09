@@ -126,7 +126,7 @@ $sostenibilita = $sost_stmt->get_result();
 
         <!-- Pulsante per tornare indietro -->
         <a href="dashboard_progetto.php?progetto_id=<?= $progetto_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>&azienda_id=<?= $azienda_id ?>"
-           class="btn btn-primary btn-rounded mt-4"><i class="fas fa-arrow-left"></i></a>
+           class="btn btn-primary btn-rounded"><i class="fas fa-arrow-left"></i></a>
     </div>
 
     <!-- Footer -->

@@ -157,7 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <h2>Crea un nuovo progetto</h2>
 
             <!-- Bottone per aggiungere checklist predefinite -->
-            <a href="aggiungi_checklist_predefinite.php" class="btn btn-primary btn-rounded mb-4">
+            <a href="aggiungi_checklist.php.?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $linea_prodotto_id ?>" class="btn btn-primary btn-rounded mb-4">
                 <i class="fas fa-plus"></i> checklist predefinite <!-- Icona per aggiungere -->
             </a>
         </div>

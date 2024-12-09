@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['nome_linea'])) {
                 <div class="product-card">
                     <h5><?= htmlspecialchars($row['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
                     <a href="master_progetti.php?azienda_id=<?= $azienda_id ?>&linea_prodotto_id=<?= $row['id'] ?>"
-                       class="btn btn-outline-primary btn-rounded"><i class="fas fa-folder"></i> Progetti</a><br>
+                       class="btn btn-primary btn-rounded"><i class="fas fa-folder"></i> Progetti</a><br>
                     <a href="modifica_linea_prodotto.php?linea_prodotto_id=<?= $row['id'] ?>&azienda_id=<?= $azienda_id ?>"
                        class="btn btn-warning btn-rounded">
                         <i class="fas fa-edit"></i>
