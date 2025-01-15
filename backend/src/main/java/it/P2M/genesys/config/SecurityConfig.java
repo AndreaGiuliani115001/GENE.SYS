@@ -1,9 +1,11 @@
 package it.P2M.genesys.config;
 
 import it.P2M.genesys.util.JwtTokenUtil;
+import it.P2M.genesys.repository.UtenteRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -11,41 +13,71 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Configurazione di sicurezza per l'applicazione Spring Boot.
+ * <p>
+ * Questa classe configura Spring Security per gestire autenticazione, autorizzazione, CORS,
+ * e l'integrazione del filtro di autenticazione JWT.
+ */
 @Configuration
 public class SecurityConfig {
 
     private final JwtTokenUtil jwtTokenUtil;
+    private final UtenteRepository utenteRepository;
 
-    public SecurityConfig(JwtTokenUtil jwtTokenUtil) {
+    /**
+     * Costruttore della configurazione di sicurezza.
+     *
+     * @param jwtTokenUtil     Utilità per la gestione dei token JWT.
+     * @param utenteRepository Repository per il recupero degli utenti.
+     */
+    public SecurityConfig(JwtTokenUtil jwtTokenUtil, UtenteRepository utenteRepository) {
         this.jwtTokenUtil = jwtTokenUtil;
+        this.utenteRepository = utenteRepository;
     }
 
+    /**
+     * Configura la catena di filtri di sicurezza.
+     *
+     * @param http                   Oggetto HttpSecurity per configurare le regole di sicurezza.
+     * @param authenticationManager  Manager per la gestione dell'autenticazione.
+     * @return Una SecurityFilterChain configurata.
+     * @throws Exception In caso di errore durante la configurazione.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-        JsonUsernamePasswordAuthenticationFilter jsonFilter = new JsonUsernamePasswordAuthenticationFilter();
-        jsonFilter.setAuthenticationManager(authenticationManager); // Configura l'AuthenticationManager
+        // Inizializza il filtro di autenticazione JWT
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtTokenUtil, utenteRepository);
 
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults()) // Configura CORS con impostazioni predefinite
+                .csrf(AbstractHttpConfigurer::disable) // Disabilita la protezione CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/auth/login").permitAll() // Consenti l'accesso libero al login
+                        .requestMatchers("/dashboard").authenticated()
+                        .anyRequest().authenticated() // Richiedi autenticazione per tutte le altre richieste
                 )
-                .addFilterBefore(jsonFilter, UsernamePasswordAuthenticationFilter.class) // Registra il filtro
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Aggiungi il filtro JWT
                 .formLogin(login -> login
-                        .usernameParameter("email")
-                        .passwordParameter("password")
-                        .loginProcessingUrl("/login")
+                        .usernameParameter("email") // Configura il parametro per il nome utente
+                        .passwordParameter("password") // Configura il parametro per la password
+                        .loginProcessingUrl("/login") // Configura l'URL per l'elaborazione del login
                         .successHandler((request, response, authentication) -> {
+                            // Genera un token JWT al login riuscito
                             String username = authentication.getName();
                             String token = jwtTokenUtil.generateToken(username);
 
+                            // Restituisce il token JWT come risposta JSON
                             response.setContentType("application/json");
                             response.setStatus(200);
                             response.getWriter().write("{\"token\": \"" + token + "\"}");
                         })
                         .failureHandler((request, response, exception) -> {
+                            // Gestisce il fallimento del login
                             response.setContentType("application/json");
                             response.setStatus(401);
                             response.getWriter().write("{\"error\": \"Credenziali non valide!\"}");
@@ -54,11 +86,41 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Configura la gestione delle richieste CORS (Cross-Origin Resource Sharing).
+     *
+     * @return Un CorsConfigurationSource configurato.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:5173"); // Consenti richieste dal frontend React
+        configuration.addAllowedMethod("*"); // Consenti tutti i metodi HTTP
+        configuration.addAllowedHeader("*"); // Consenti tutti gli header HTTP
+        configuration.setAllowCredentials(true); // Permetti credenziali (cookie, token di autenticazione)
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Applica CORS a tutte le rotte
+        return source;
+    }
+
+    /**
+     * Bean per il gestore dell'autenticazione.
+     *
+     * @param authenticationConfiguration Configurazione di autenticazione.
+     * @return L'oggetto AuthenticationManager.
+     * @throws Exception In caso di errore.
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    /**
+     * Bean per l'encoder delle password.
+     *
+     * @return Un oggetto PasswordEncoder che utilizza BCrypt.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

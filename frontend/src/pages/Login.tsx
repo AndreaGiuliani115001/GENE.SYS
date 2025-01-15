@@ -1,7 +1,7 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { login } from '../services/authService';
+import { login } from '../services/authService.ts';
 import { TextField, Button, Box, Typography } from '@mui/material';
 
 const Login: React.FC = () => {

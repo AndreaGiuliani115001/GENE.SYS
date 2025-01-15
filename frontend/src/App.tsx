@@ -1,17 +1,22 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './components/Login.tsx';
-import Dashboard from './components/Dashboard.tsx';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import PrivateRoute from './components/PrivateRoute';
 
 const App: React.FC = () => {
     return (
         <Router>
             <Routes>
-                {/* Rotta per il Login */}
                 <Route path="/" element={<Login />} />
-
-                {/* Rotta per la Dashboard (protetta in futuro) */}
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route
+                    path="/dashboard"
+                    element={
+                        <PrivateRoute>
+                            <Dashboard />
+                        </PrivateRoute>
+                    }
+                />
             </Routes>
         </Router>
     );

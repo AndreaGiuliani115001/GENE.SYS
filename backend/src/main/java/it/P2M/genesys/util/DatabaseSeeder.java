@@ -1,5 +1,3 @@
-
-
 package it.P2M.genesys.util;
 
 import it.P2M.genesys.model.*;
@@ -9,9 +7,27 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * Classe per l'inizializzazione del database con dati di base.
+ * <p>
+ * Questa configurazione viene eseguita una sola volta all'avvio
+ * dell'applicazione se il database non è già stato inizializzato.
+ */
 @Configuration
 public class DatabaseSeeder {
 
+    /**
+     * Bean che si occupa di popolare il database con dati iniziali.
+     *
+     * @param settingRepository        Repository per gestire le impostazioni.
+     * @param aziendaRepository        Repository per gestire le aziende.
+     * @param campoOperativoRepository Repository per gestire i campi operativi.
+     * @param permessoRepository       Repository per gestire i permessi.
+     * @param utenteRepository         Repository per gestire gli utenti.
+     * @param utentePermessoRepository Repository per gestire le relazioni utente-permesso.
+     * @param passwordEncoder          Encoder per le password.
+     * @return Un `CommandLineRunner` che popola il database.
+     */
     @Bean
     CommandLineRunner initDatabase(
             SettingRepository settingRepository,
@@ -23,7 +39,7 @@ public class DatabaseSeeder {
             PasswordEncoder passwordEncoder) {
         return args -> {
 
-            // Controlla se il database è già inizializzato
+            // Controlla se il database è già stato inizializzato
             Setting databaseInitialized = settingRepository.findByKey("database_initialized");
             if (databaseInitialized != null && "true".equals(databaseInitialized.getValue())) {
                 System.out.println("Database già inizializzato. Salto il seeder.");
@@ -41,7 +57,7 @@ public class DatabaseSeeder {
 
             Azienda xyz = new Azienda("XYZ", "Via Torino 5, Roma", "+39 0987 654321", "info@xyz.com", "09876543210");
             xyz.setCampoOperativo(campoOperativo);
-            aziendaRepository.save(xyz);
+            xyz = aziendaRepository.save(xyz);
 
             // Creazione dei Permessi
             Permesso modifica = permessoRepository.save(new Permesso("Modifica", "Azienda"));
@@ -49,20 +65,31 @@ public class DatabaseSeeder {
             Permesso visualizzazione = permessoRepository.save(new Permesso("Visualizzazione", "Azienda"));
 
             // Creazione degli Utenti
-            Utente masterP2M = new Utente("Master", "P2M", "master@p2m.com", "admin", passwordEncoder.encode("password"));
-            masterP2M.setAzienda(p2m);
+            Utente masterP2M = new Utente("Master", "P2M", "master@p2m.com", "MASTER", passwordEncoder.encode("password"));
+            masterP2M.setAziendaId(p2m);
             masterP2M = utenteRepository.save(masterP2M);
 
-            Utente operatoreP2M = new Utente("Operatore", "P2M", "operatore@p2m.com", "operatore", passwordEncoder.encode("password"));
-            operatoreP2M.setAzienda(p2m);
-            operatoreP2M = utenteRepository.save(operatoreP2M);
+            Utente adminXYZ = new Utente("Admin", "XYZ", "admin@xyz.com", "ADMIN", passwordEncoder.encode("password"));
+            adminXYZ.setAziendaId(xyz);
+            adminXYZ = utenteRepository.save(adminXYZ);
 
-            // Creazione delle relazioni Utente-Permesso
+            Utente projectManagerXYZ = new Utente("ProjectManager", "XYZ", "projectmanager@xyz.com", "PROJECT_MANAGER", passwordEncoder.encode("password"));
+            projectManagerXYZ.setAziendaId(xyz);
+            projectManagerXYZ = utenteRepository.save(projectManagerXYZ);
+
+            Utente operatoreXYZ = new Utente("Operatore", "XYZ", "operatore@xyz.com", "OPERATORE", passwordEncoder.encode("password"));
+            operatoreXYZ.setAziendaId(xyz);
+            operatoreXYZ = utenteRepository.save(operatoreXYZ);
+
+            // Creazione delle relazioni Utente-Permesso per master
             utentePermessoRepository.save(new UtentePermesso(masterP2M.getId(), modifica.getId()));
             utentePermessoRepository.save(new UtentePermesso(masterP2M.getId(), eliminazione.getId()));
             utentePermessoRepository.save(new UtentePermesso(masterP2M.getId(), visualizzazione.getId()));
 
-            utentePermessoRepository.save(new UtentePermesso(operatoreP2M.getId(), visualizzazione.getId()));
+            // Creazione delle relazioni Utente-Permesso per admin
+            utentePermessoRepository.save(new UtentePermesso(adminXYZ.getId(), modifica.getId()));
+            utentePermessoRepository.save(new UtentePermesso(adminXYZ.getId(), eliminazione.getId()));
+            utentePermessoRepository.save(new UtentePermesso(adminXYZ.getId(), visualizzazione.getId()));
 
             System.out.println("Database inizializzato con successo!");
 
