@@ -4,6 +4,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Rappresenta un utente del sistema.
  * <p>
@@ -24,6 +27,12 @@ public class Utente {
 
     @DBRef
     private Azienda aziendaId; // Riferimento all'azienda associata all'utente
+
+    @DBRef
+    private List<Permesso> permessiAggiuntivi; // Permessi aggiuntivi personalizzati
+
+    @DBRef
+    private List<Permesso> permessiLimitati;  // Permessi da rimuovere rispetto al ruolo
 
     /**
      * Costruttore predefinito per la classe `Utente`.
@@ -165,5 +174,21 @@ public class Utente {
      */
     public void setAziendaId(Azienda aziendaId) {
         this.aziendaId = aziendaId;
+    }
+
+    public List<Permesso> getPermessiAggiuntivi() {
+        return permessiAggiuntivi;
+    }
+
+    public void setPermessiAggiuntivi(List<Permesso> permessiAggiuntivi) {
+        this.permessiAggiuntivi = permessiAggiuntivi;
+    }
+
+    public List<Permesso> getPermessiLimitati() {
+        return permessiLimitati;
+    }
+
+    public void setPermessiLimitati(List<Permesso> permessiLimitati) {
+        this.permessiLimitati = permessiLimitati;
     }
 }

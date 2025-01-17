@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
+
 /**
  * Classe per l'inizializzazione del database con dati di base.
  * <p>
@@ -23,8 +25,8 @@ public class DatabaseSeeder {
      * @param aziendaRepository        Repository per gestire le aziende.
      * @param campoOperativoRepository Repository per gestire i campi operativi.
      * @param permessoRepository       Repository per gestire i permessi.
+     * @param ruoloRepository          Repository per gestire i ruoli.
      * @param utenteRepository         Repository per gestire gli utenti.
-     * @param utentePermessoRepository Repository per gestire le relazioni utente-permesso.
      * @param passwordEncoder          Encoder per le password.
      * @return Un `CommandLineRunner` che popola il database.
      */
@@ -34,8 +36,8 @@ public class DatabaseSeeder {
             AziendaRepository aziendaRepository,
             CampoOperativoRepository campoOperativoRepository,
             PermessoRepository permessoRepository,
+            RuoloRepository ruoloRepository,
             UtenteRepository utenteRepository,
-            UtentePermessoRepository utentePermessoRepository,
             PasswordEncoder passwordEncoder) {
         return args -> {
 
@@ -60,36 +62,59 @@ public class DatabaseSeeder {
             xyz = aziendaRepository.save(xyz);
 
             // Creazione dei Permessi
-            Permesso modifica = permessoRepository.save(new Permesso("Modifica", "Azienda"));
-            Permesso eliminazione = permessoRepository.save(new Permesso("Eliminazione", "Azienda"));
-            Permesso visualizzazione = permessoRepository.save(new Permesso("Visualizzazione", "Azienda"));
+            Permesso visualizzaAziendaGlobale = permessoRepository.save(new Permesso("visualizza", "azienda"));
+            Permesso modificaAziendaGlobale = permessoRepository.save(new Permesso("modifica", "azienda"));
+            Permesso eliminaAziendaGlobale = permessoRepository.save(new Permesso("elimina", "azienda"));
+            Permesso aggiungiAziendaGlobale = permessoRepository.save(new Permesso("aggiungi", "azienda"));
 
-            // Creazione degli Utenti
-            Utente masterP2M = new Utente("Master", "P2M", "master@p2m.com", "MASTER", passwordEncoder.encode("password"));
+            Permesso visualizzaAziendaSpecifico = permessoRepository.save(new Permesso("visualizza", "azienda", p2m.getId()));
+            Permesso modificaAziendaSpecifico = permessoRepository.save(new Permesso("modifica", "azienda", p2m.getId()));
+
+            // Creazione dei Ruoli
+            Ruolo masterRole = new Ruolo(null, "ROLE_MASTER", List.of(
+                    visualizzaAziendaGlobale, modificaAziendaGlobale, eliminaAziendaGlobale, aggiungiAziendaGlobale
+            ));
+            masterRole = ruoloRepository.save(masterRole);
+
+            Ruolo adminRole = new Ruolo(null, "ROLE_ADMIN", List.of(
+                    visualizzaAziendaSpecifico, modificaAziendaSpecifico
+            ));
+            adminRole = ruoloRepository.save(adminRole);
+
+            Ruolo projectManagerRole = new Ruolo(null, "ROLE_PROJECT_MANAGER", List.of(
+                    visualizzaAziendaGlobale
+            ));
+            projectManagerRole = ruoloRepository.save(projectManagerRole);
+
+            Ruolo operatoreRole = new Ruolo(null, "ROLE_OPERATORE", List.of(
+                    visualizzaAziendaGlobale
+            ));
+            operatoreRole = ruoloRepository.save(operatoreRole);
+
+            // Creazione degli Utenti con Ruoli e Permessi Personalizzati
+            Utente masterP2M = new Utente("Master", "P2M", "master@p2m.com", "ROLE_MASTER", passwordEncoder.encode("password"));
             masterP2M.setAziendaId(p2m);
+            masterP2M.setPermessiAggiuntivi(List.of()); // Nessun permesso extra
+            masterP2M.setPermessiLimitati(List.of()); // Nessuna limitazione
             masterP2M = utenteRepository.save(masterP2M);
 
-            Utente adminXYZ = new Utente("Admin", "XYZ", "admin@xyz.com", "ADMIN", passwordEncoder.encode("password"));
-            adminXYZ.setAziendaId(xyz);
+            Utente adminXYZ = new Utente("Admin", "P2M", "admin@p2m.com", "ROLE_ADMIN", passwordEncoder.encode("password"));
+            adminXYZ.setAziendaId(p2m);
+            adminXYZ.setPermessiAggiuntivi(List.of(eliminaAziendaGlobale)); // Aggiunge permesso di eliminazione globale
+            adminXYZ.setPermessiLimitati(List.of(modificaAziendaSpecifico)); // Rimuove permesso di modifica specifico
             adminXYZ = utenteRepository.save(adminXYZ);
 
-            Utente projectManagerXYZ = new Utente("ProjectManager", "XYZ", "projectmanager@xyz.com", "PROJECT_MANAGER", passwordEncoder.encode("password"));
+            Utente projectManagerXYZ = new Utente("ProjectManager", "XYZ", "projectmanager@xyz.com", "ROLE_PROJECT_MANAGER", passwordEncoder.encode("password"));
             projectManagerXYZ.setAziendaId(xyz);
+            projectManagerXYZ.setPermessiAggiuntivi(List.of()); // Nessun permesso extra
+            projectManagerXYZ.setPermessiLimitati(List.of()); // Nessuna limitazione
             projectManagerXYZ = utenteRepository.save(projectManagerXYZ);
 
-            Utente operatoreXYZ = new Utente("Operatore", "XYZ", "operatore@xyz.com", "OPERATORE", passwordEncoder.encode("password"));
+            Utente operatoreXYZ = new Utente("Operatore", "XYZ", "operatore@xyz.com", "ROLE_OPERATORE", passwordEncoder.encode("password"));
             operatoreXYZ.setAziendaId(xyz);
+            operatoreXYZ.setPermessiAggiuntivi(List.of()); // Nessun permesso extra
+            operatoreXYZ.setPermessiLimitati(List.of()); // Nessuna limitazione
             operatoreXYZ = utenteRepository.save(operatoreXYZ);
-
-            // Creazione delle relazioni Utente-Permesso per master
-            utentePermessoRepository.save(new UtentePermesso(masterP2M.getId(), modifica.getId()));
-            utentePermessoRepository.save(new UtentePermesso(masterP2M.getId(), eliminazione.getId()));
-            utentePermessoRepository.save(new UtentePermesso(masterP2M.getId(), visualizzazione.getId()));
-
-            // Creazione delle relazioni Utente-Permesso per admin
-            utentePermessoRepository.save(new UtentePermesso(adminXYZ.getId(), modifica.getId()));
-            utentePermessoRepository.save(new UtentePermesso(adminXYZ.getId(), eliminazione.getId()));
-            utentePermessoRepository.save(new UtentePermesso(adminXYZ.getId(), visualizzazione.getId()));
 
             System.out.println("Database inizializzato con successo!");
 

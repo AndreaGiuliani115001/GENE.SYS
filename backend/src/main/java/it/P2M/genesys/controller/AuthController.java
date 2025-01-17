@@ -66,7 +66,9 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // Genera il token JWT utilizzando il nome utente
-            String token = jwtTokenUtil.generateToken(authentication.getName());
+            String username = authentication.getName();
+            String role = authentication.getAuthorities().iterator().next().getAuthority();
+            String token = jwtTokenUtil.generateToken(username, role);
 
             // Prepara la risposta con il token
             Map<String, String> response = new HashMap<>();

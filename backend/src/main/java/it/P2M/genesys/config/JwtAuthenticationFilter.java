@@ -75,7 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Utente utente = utenteRepository.findByEmail(username);
                 if (utente != null) {
                 // Determina il ruolo dell'utente e lo formatta
-                String ruolo = "ROLE_" + utente.getRuolo();
+                String ruolo = utente.getRuolo();
 
                 // Crea una lista di autorità (ruoli) per l'utente
                 List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(ruolo));

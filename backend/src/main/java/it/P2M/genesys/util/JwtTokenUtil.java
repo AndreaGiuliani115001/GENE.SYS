@@ -49,9 +49,10 @@ public class JwtTokenUtil {
      * @param username Lo username da includere nel token.
      * @return Una stringa che rappresenta il token JWT.
      */
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         return Jwts.builder()
-                .setSubject(username) // Imposta lo username come "subject"
+                .setSubject(username)
+                .claim("role", role)// Imposta lo username come "subject"
                 .setIssuedAt(new Date()) // Imposta la data di creazione
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Imposta la scadenza
                 .signWith(SECRET_KEY) // Firma il token con la chiave segreta

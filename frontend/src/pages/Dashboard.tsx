@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import {Routes, Route, Navigate} from 'react-router-dom';
 import { fetchDashboardData } from '../services/dashboardService';
 import { CircularProgress, Typography, Box, Grid, Card, CardContent, CssBaseline } from '@mui/material';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import Utenti from './Utenti';
+import Aziende from './Aziende';
+import Permessi from './Permessi';
+import PrivateRoute from "../components/PrivateRoute.tsx";
 
 interface DashboardData {
     numeroAziende: number;
@@ -36,42 +41,71 @@ const Dashboard: React.FC = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    if (loading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (error) {
-        return <Typography color="error">{error}</Typography>;
-    }
-
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <CssBaseline />
             <Navbar onMenuClick={toggleSidebar} />
             <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
 
-            <Box sx={{ flexGrow: 1, p: 3, transition: 'margin 0.3s', marginLeft: isSidebarOpen ? '240px' : '0' }}>
-                <Typography variant="h4" gutterBottom>
-                    Dashboard
-                </Typography>
-                {data && (
-                    <Grid container spacing={3}>
-                        {Object.entries(data).map(([key, value]) => (
-                            <Grid item xs={12} sm={6} md={4} key={key}>
-                                <Card>
-                                    <CardContent>
-                                        <Typography variant="h6">{key}</Typography>
-                                        <Typography variant="h4">{value}</Typography>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
-                        ))}
-                    </Grid>
-                )}
+            <Box sx={{ marginTop: '64px', flexGrow: 1, p: 3, marginLeft: isSidebarOpen ? '240px' : '0', transition: 'margin 0.3s' }}>
+                <Routes>
+                    <Route
+                        path="/"
+                        element={
+                            loading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                                    <CircularProgress />
+                                </Box>
+                            ) : error ? (
+                                <Typography color="error">{error}</Typography>
+                            ) : (
+                                <>
+                                    <Grid container spacing={3}>
+                                        {data &&
+                                            Object.entries(data).map(([key, value]) => (
+                                                <Grid item xs={12} sm={6} md={4} key={key}>
+                                                    <Card>
+                                                        <CardContent>
+                                                            <Typography variant="h6">{key}</Typography>
+                                                            <Typography variant="h4">{value}</Typography>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Grid>
+                                            ))}
+                                    </Grid>
+                                </>
+                            )
+                        }
+                    />
+
+                    <Route
+                        path="utenti"
+                        element={
+                            <PrivateRoute allowedRoles={['ROLE_MASTER', 'ROLE_ADMIN']}>
+                                <Utenti />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="aziende"
+                        element={
+                            <PrivateRoute allowedRoles={['ROLE_MASTER']}>
+                                <Aziende />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="permessi"
+                        element={
+                            <PrivateRoute allowedRoles={['ROLE_MASTER', 'ROLE_ADMIN']}>
+                                <Permessi />
+                            </PrivateRoute>
+                        }
+                    />
+
+                    {/* Fallback per sottorotte non valide */}
+                    <Route path="*" element={<Navigate to="/not-found" replace />} />
+                </Routes>
             </Box>
         </Box>
     );

@@ -18,6 +18,8 @@ public class Permesso {
     private String azione; // Azione consentita (es. "modifica", "elimina", "visualizza")
     private String entita; // Entità su cui l'azione è consentita (es. "azienda", "utente")
 
+    private String entitaId; // ID specifico dell'entità (opzionale)
+
     /**
      * Costruttore predefinito per la classe `Permesso`.
      */
@@ -25,7 +27,7 @@ public class Permesso {
     }
 
     /**
-     * Costruttore completo per la classe `Permesso`.
+     * Costruttore per la classe `Permesso`.
      *
      * @param azione Azione consentita dal permesso.
      * @param entita Entità su cui l'azione è consentita.
@@ -33,6 +35,19 @@ public class Permesso {
     public Permesso(String azione, String entita) {
         this.azione = azione;
         this.entita = entita;
+    }
+
+    /**
+     * Costruttore completo per la classe `Permesso`.
+     *
+     * @param azione Azione consentita dal permesso.
+     * @param entita Entità su cui l'azione è consentita.
+     * @param entitaId Id specifico dell'entita per identificarne una in particolare.
+     */
+    public Permesso(String azione, String entita, String entitaId) {
+        this.azione = azione;
+        this.entita = entita;
+        this.entitaId = entitaId;
     }
 
     /**

@@ -57,7 +57,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         // Prepara il ruolo con il prefisso `ROLE_` richiesto da Spring Security
-        String ruolo = "ROLE_" + utente.getRuolo();
+        String ruolo = utente.getRuolo();
 
         // Recupera i dettagli aggiuntivi dell'utente
         String nome = utente.getNome();

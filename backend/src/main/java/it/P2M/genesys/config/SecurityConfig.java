@@ -57,10 +57,28 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Configura CORS con impostazioni predefinite
                 .csrf(AbstractHttpConfigurer::disable) // Disabilita la protezione CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll() // Consenti l'accesso libero al login
+                        // Endpoint pubblici
+                        .requestMatchers("/auth/login").permitAll()
+
+                        // Regole per master (accesso multi-azienda)
+                        .requestMatchers("/dashboard/aziende/**").hasRole("MASTER")
+
+                        // Regole per master e admin (gestione utenti)
+                        .requestMatchers("/dashboard/utenti/**").hasAnyRole("MASTER", "ADMIN")
+
+                        // Regole per project manager (linee di produzione e progetti)
+                        .requestMatchers("/dashboard/linee-produzione/**", "/dashboard/progetti/**").hasRole("PROJECT_MANAGER")
+
+                        // Regole per operatore (checklist)
+                        .requestMatchers("/dashboard/checklist/**").hasRole("OPERATORE")
+
+                        // Accesso autenticato per la dashboard principale
                         .requestMatchers("/dashboard").authenticated()
-                        .anyRequest().authenticated() // Richiedi autenticazione per tutte le altre richieste
+
+                        // Autenticazione richiesta per tutto il resto
+                        .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Aggiungi il filtro JWT
                 .formLogin(login -> login
                         .usernameParameter("email") // Configura il parametro per il nome utente
@@ -69,7 +87,8 @@ public class SecurityConfig {
                         .successHandler((request, response, authentication) -> {
                             // Genera un token JWT al login riuscito
                             String username = authentication.getName();
-                            String token = jwtTokenUtil.generateToken(username);
+                            String role = authentication.getAuthorities().iterator().next().getAuthority();
+                            String token = jwtTokenUtil.generateToken(username, role);
 
                             // Restituisce il token JWT come risposta JSON
                             response.setContentType("application/json");

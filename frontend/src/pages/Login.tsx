@@ -2,13 +2,14 @@ import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { login } from '../services/authService.ts';
-import { TextField, Button, Box, Typography } from '@mui/material';
+import { TextField, Button, Box, Checkbox, FormControlLabel } from '@mui/material';
 
 const Login: React.FC = () => {
     const formik = useFormik({
         initialValues: {
             email: '',
             password: '',
+            rememberMe: false,
         },
         validationSchema: Yup.object({
             email: Yup.string().email('Email non valida').required('Email obbligatoria'),
@@ -33,7 +34,7 @@ const Login: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                backgroundColor: '#242424', // Sfondo nero
+                backgroundColor: 'background.default', // Usa il tema globale
             }}
         >
             <Box
@@ -43,13 +44,22 @@ const Login: React.FC = () => {
                     width: 400,
                     padding: 3,
                     borderRadius: 2,
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
-                    backgroundColor: '#ffffff', // Bianco per il contenitore
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                    backgroundColor: 'background.paper', // Usa il tema globale
+                    textAlign: 'center',
                 }}
             >
-                <Typography variant="h5" align="center" gutterBottom>
-                    Login
-                </Typography>
+                {/* Logo */}
+                <Box sx={{ marginBottom: 3 }}>
+                    <img
+                        src="/apple-touch-icon.png" // Percorso del logo
+                        alt="Logo"
+                        width={80}
+                        height={80}
+                    />
+                </Box>
+
+                {/* Campo Email */}
                 <TextField
                     label="Email"
                     type="email"
@@ -62,6 +72,8 @@ const Login: React.FC = () => {
                     fullWidth
                     sx={{ marginBottom: 2 }}
                 />
+
+                {/* Campo Password */}
                 <TextField
                     label="Password"
                     type="password"
@@ -72,9 +84,29 @@ const Login: React.FC = () => {
                     error={formik.touched.password && Boolean(formik.errors.password)}
                     helperText={formik.touched.password && formik.errors.password}
                     fullWidth
-                    sx={{ marginBottom: 3 }}
+                    sx={{ marginBottom: 2 }}
                 />
-                <Button type="submit" variant="contained" color="primary" fullWidth>
+
+                {/* Checkbox Ricordami */}
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            name="rememberMe"
+                            onChange={formik.handleChange}
+                            checked={formik.values.rememberMe}
+                        />
+                    }
+                    label="Remember me"
+                    sx={{ marginBottom: 2 }}
+                />
+
+                {/* Bottone Login */}
+                <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    sx={{ padding: '10px 0', textTransform: 'uppercase', fontWeight: 'bold' }}
+                >
                     Login
                 </Button>
             </Box>
