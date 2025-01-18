@@ -1,82 +1,82 @@
 package it.P2M.genesys.controller;
 
+import it.P2M.genesys.model.Permesso;
+import it.P2M.genesys.model.Utente;
+import it.P2M.genesys.repository.UtenteRepository;
 import it.P2M.genesys.util.JwtTokenUtil;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-/**
- * Controller per la gestione delle operazioni di autenticazione.
- * <p>
- * Fornisce endpoint per l'accesso (`/auth/login`) e l'emissione di token JWT.
- */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
+    private final UtenteRepository utenteRepository;
+    private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
 
-    /**
-     * Costruttore del controller di autenticazione.
-     *
-     * @param authenticationManager Gestore per l'autenticazione.
-     * @param jwtTokenUtil           Utilità per la gestione dei token JWT.
-     */
-    public AuthController(AuthenticationManager authenticationManager, JwtTokenUtil jwtTokenUtil) {
-        this.authenticationManager = authenticationManager;
+    public AuthController(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder, JwtTokenUtil jwtTokenUtil) {
+        this.utenteRepository = utenteRepository;
+        this.passwordEncoder = passwordEncoder;
         this.jwtTokenUtil = jwtTokenUtil;
     }
 
-    /**
-     * Endpoint per il login dell'utente.
-     * <p>
-     * Questo metodo verifica le credenziali inviate e, se corrette, genera un token JWT.
-     *
-     * @param loginRequest Una mappa contenente i campi `email` e `password`.
-     * @return Una risposta contenente il token JWT in formato JSON.
-     * @throws ResponseStatusException Se i campi sono mancanti o le credenziali non sono valide.
-     */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> loginRequest) {
-        // Estrae email e password dalla richiesta
-        String email = loginRequest.get("email");
-        String password = loginRequest.get("password");
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        String email = credentials.get("email");
+        String password = credentials.get("password");
 
-        // Verifica che i campi non siano nulli o vuoti
-        if (email == null || email.isBlank() || password == null || password.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email e password sono obbligatori");
+        // Validazione input
+        if (email == null || password == null) {
+            return ResponseEntity.badRequest().body("Email o password mancanti");
         }
 
-        try {
-            // Autentica l'utente utilizzando AuthenticationManager
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
-            );
-            // Imposta l'autenticazione nel contesto di sicurezza
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Genera il token JWT utilizzando il nome utente
-            String username = authentication.getName();
-            String role = authentication.getAuthorities().iterator().next().getAuthority();
-            String token = jwtTokenUtil.generateToken(username, role);
-
-            // Prepara la risposta con il token
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            return ResponseEntity.ok(response);
-        } catch (AuthenticationException e) {
-            // Gestisce errori di autenticazione
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziali non valide!");
+        // Recupera l'utente dal database
+        Utente utente = utenteRepository.findByEmail(email);
+        if (utente == null) {
+            return ResponseEntity.status(404).body("Utente non trovato");
         }
+
+        // Verifica la password
+        if (!passwordEncoder.matches(password, utente.getPassword())) {
+            return ResponseEntity.status(401).body("Credenziali non valide");
+        }
+
+        // Recupera ruolo, permessi effettivi e azienda.
+        String role = utente.getRuolo().getNome(); // Es. ROLE_ADMIN
+        System.out.println("Azienda associata: " + utente.getAziendaId());
+        String aziendaId = utente.getAziendaId() != null ? utente.getAziendaId().getId() : null;
+        List<Permesso> permessiEffettivi = getEffectivePermissions(utente);
+
+        // Converte i permessi in stringhe
+        List<String> permissions = new ArrayList<>();
+        for (Permesso permesso : permessiEffettivi) {
+            String permissionString = permesso.getAzione() + "_" + permesso.getEntita();
+            if (permesso.getEntitaId() != null) {
+                permissionString += "_" + permesso.getEntitaId();
+            }
+            permissions.add(permissionString);
+        }
+
+        // Genera il token JWT
+        String token = jwtTokenUtil.generateToken(email, role, aziendaId, permissions);
+
+        // Restituisce il token come risposta JSON
+        Map<String, String> response = Map.of("token", token);
+        return ResponseEntity.ok(response);
+    }
+
+
+    // Combina i permessi del ruolo con quelli aggiuntivi/limitati
+    private List<Permesso> getEffectivePermissions(Utente utente) {
+        List<Permesso> permessi = new ArrayList<>(utente.getRuolo().getPermessiPredefiniti());
+        permessi.addAll(utente.getPermessiAggiuntivi());
+        permessi.removeAll(utente.getPermessiLimitati());
+        return permessi;
     }
 }

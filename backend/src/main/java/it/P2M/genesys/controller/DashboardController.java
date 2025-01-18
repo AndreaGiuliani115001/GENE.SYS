@@ -59,7 +59,6 @@ public class DashboardController {
         System.out.println("DashboardController - Metodo chiamato!");
 
         Map<String, Object> response = new HashMap<>();
-
         // Log l'autenticazione
         System.out.println("Autenticazione: " + authentication);
         System.out.println("Principal: " + authentication.getPrincipal());
@@ -69,30 +68,31 @@ public class DashboardController {
         System.out.println("Ruolo dell'utente: " + role);
 
         if ("ROLE_MASTER".equals(role)) {
-            // Recupera statistiche generali per gli utenti con ruolo MASTER
+            // Statistiche generali
             long numeroAziende = aziendaRepository.count();
             long numeroUtenti = utenteRepository.count();
             long numeroPermessi = permessoRepository.count();
 
-            System.out.println("Master Dashboard - Aziende: " + numeroAziende + ", Utenti: " + numeroUtenti + ", Permessi: " + numeroPermessi);
-
             response.put("Totale Aziende", numeroAziende);
             response.put("Totale Utenti", numeroUtenti);
             response.put("Permessi", numeroPermessi);
-
         } else if ("ROLE_ADMIN".equals(role)) {
-            // Recupera dati specifici per gli utenti con ruolo ADMIN
-            Object principal = authentication.getPrincipal();
-            if (principal instanceof CustomUserDetails) {
-                String aziendaId = ((CustomUserDetails) principal).getAziendaId();
-                long numeroUtenti = utenteRepository.countByAziendaId(aziendaId);
-                response.put("Totale Utenti", numeroUtenti);
+            // Recupera dati specifici per ADMIN
+            if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+                String aziendaId = userDetails.getAziendaId();
+                if (aziendaId != null) {
+                    long numeroUtenti = utenteRepository.countByAziendaId(aziendaId);
+                    response.put("Totale Utenti", numeroUtenti);
+                    response.put("Azienda ID", aziendaId);
+                } else {
+                    throw new IllegalStateException("ID Azienda mancante per l'utente ADMIN.");
+                }
             } else {
-                // Lancia un'eccezione se il principal non è del tipo previsto
-                throw new IllegalStateException("Principal non è del tipo CustomUserDetails: " + principal.getClass().getName());
+                throw new IllegalStateException("Principal non è del tipo CustomUserDetails.");
             }
+        } else {
+            throw new IllegalStateException("Ruolo non supportato: " + role);
         }
-
         return response;
     }
 }

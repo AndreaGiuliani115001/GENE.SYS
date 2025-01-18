@@ -17,7 +17,6 @@ public class Permesso {
 
     private String azione; // Azione consentita (es. "modifica", "elimina", "visualizza")
     private String entita; // Entità su cui l'azione è consentita (es. "azienda", "utente")
-
     private String entitaId; // ID specifico dell'entità (opzionale)
 
     /**
@@ -93,5 +92,14 @@ public class Permesso {
      */
     public void setEntita(String entita) {
         this.entita = entita;
+    }
+
+
+    public String getEntitaId() {
+        return entitaId;
+    }
+
+    public void setEntitaId(String entitaId) {
+        this.entitaId = entitaId;
     }
 }

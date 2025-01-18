@@ -3,7 +3,9 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 // Aggiungi un'interfaccia per i dettagli dell'utente
 interface User {
     email: string; // Email dell'utente
-    role: string;  // Ruolo dell'utente
+    role: string;
+    aziendaId: string;
+    permissions: string[];
 }
 
 interface AuthContextProps {
@@ -34,7 +36,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const decodeToken = (token: string): User | null => {
         try {
             const payload = JSON.parse(atob(token.split('.')[1])); // Decodifica il payload del token
-            return { email: payload.sub, role: payload.role }; // Mappa i dettagli dell'utente
+            return { email: payload.sub, role: payload.role , aziendaId: payload.aziendaId, permissions: payload.permissions}; // Mappa i dettagli dell'utente
         } catch (e) {
             console.error("Errore nella decodifica del token:", e);
             return null;

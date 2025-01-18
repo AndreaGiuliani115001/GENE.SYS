@@ -8,72 +8,113 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
 
-/**
- * Classe per la gestione dei token JWT (JSON Web Token).
- * <p>
- * Fornisce metodi per generare, validare e analizzare i token JWT.
- */
 @Component
 public class JwtTokenUtil {
 
-    /**
-     * Chiave segreta per la firma del token JWT.
-     * Viene generata automaticamente utilizzando l'algoritmo HS512.
-     */
+    // Chiave segreta per la firma del token
     private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
-    /**
-     * Tempo di scadenza del token in millisecondi (24 ore).
-     */
+    // Tempo di scadenza del token (24 ore)
     private final long EXPIRATION_TIME = 86400000;
 
     /**
-     * Estrae lo username (subject) dal token JWT.
+     * Genera un token JWT per un dato utente.
+     *
+     * @param email  Nome dell'utente.
+     * @param role      Ruolo dell'utente.
+     * @param permissions Lista di permessi (es. "visualizza_azienda_12345").
+     * @return Il token JWT generato.
+     */
+    public String generateToken(String email, String role, String aziendaId, List<String> permissions) {
+        return Jwts.builder()
+                .setSubject(email) // Imposta lo username come subject
+                .claim("role", role)// Aggiunge il ruolo
+                .claim("aziendaId", aziendaId) //Aggiunge l'azienda
+                .claim("permissions", permissions) // Aggiunge i permessi
+                .setIssuedAt(new Date()) // Data di creazione
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Data di scadenza
+                .signWith(SECRET_KEY) // Firma il token con la chiave segreta
+                .compact(); // Genera il token come stringa
+    }
+
+    /**
+     * Estrae lo username dal token.
      *
      * @param token Il token JWT.
      * @return Lo username contenuto nel token.
      */
     public String extractUsername(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY) // Usa la chiave segreta per analizzare il token
+                .setSigningKey(SECRET_KEY)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject(); // Restituisce il "subject" del token (lo username)
+                .getSubject();
     }
 
     /**
-     * Genera un token JWT per un dato username.
+     * Estrae il ruolo dal token.
      *
-     * @param username Lo username da includere nel token.
-     * @return Una stringa che rappresenta il token JWT.
+     * @param token Il token JWT.
+     * @return Il ruolo contenuto nel token.
      */
-    public String generateToken(String username, String role) {
-        return Jwts.builder()
-                .setSubject(username)
-                .claim("role", role)// Imposta lo username come "subject"
-                .setIssuedAt(new Date()) // Imposta la data di creazione
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Imposta la scadenza
-                .signWith(SECRET_KEY) // Firma il token con la chiave segreta
-                .compact(); // Converte il token in una stringa
+    public String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 
     /**
-     * Valida un token JWT controllandone la firma e la scadenza.
+     * Estrae l'azienda dal token.
      *
-     * @param token Il token JWT da validare.
-     * @return `true` se il token è valido, altrimenti `false`.
+     * @param token Il token JWT.
+     * @return l'azienda contenuta nel token.
+     */
+    public String extractFactory(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("aziendaId", String.class);
+    }
+
+    /**
+     * Estrae i permessi dal token.
+     *
+     * @param token Il token JWT.
+     * @return Una lista di permessi contenuti nel token.
+     */
+    public List<String> extractPermissions(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("permissions", List.class);
+    }
+
+    /**
+     * Valida un token JWT.
+     *
+     * @param token Il token JWT.
+     * @return True se il token è valido, altrimenti False.
      */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY) // Usa la chiave segreta per validare il token
+                    .setSigningKey(SECRET_KEY)
                     .build()
-                    .parseClaimsJws(token); // Analizza il token
-            return true; // Token valido
+                    .parseClaimsJws(token);
+            return true;
         } catch (Exception e) {
-            return false; // Token non valido
+            System.err.println("Token non valido: " + e.getMessage());
+            return false;
         }
     }
 
@@ -91,4 +132,5 @@ public class JwtTokenUtil {
         }
         return null; // Nessun token trovato
     }
+
 }

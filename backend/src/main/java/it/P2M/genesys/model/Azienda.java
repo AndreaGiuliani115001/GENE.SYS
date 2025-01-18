@@ -19,7 +19,7 @@ public class Azienda {
     private String indirizzo; // Indirizzo dell'azienda
     private String telefono; // Numero di telefono dell'azienda
     private String email; // Email dell'azienda
-    private String pIva; // Partita IVA dell'azienda
+    private String PIva; // Partita IVA dell'azienda
 
     @DBRef
     private CampoOperativo campoOperativo; // Riferimento al campo operativo associato
@@ -37,14 +37,14 @@ public class Azienda {
      * @param indirizzo Indirizzo dell'azienda.
      * @param telefono  Numero di telefono dell'azienda.
      * @param email     Email dell'azienda.
-     * @param pIva      Partita IVA dell'azienda.
+     * @param PIva      Partita IVA dell'azienda.
      */
-    public Azienda(String nome, String indirizzo, String telefono, String email, String pIva) {
+    public Azienda(String nome, String indirizzo, String telefono, String email, String PIva) {
         this.nome = nome;
         this.indirizzo = indirizzo;
         this.telefono = telefono;
         this.email = email;
-        this.pIva = pIva;
+        this.PIva = PIva;
     }
 
     /**
@@ -79,17 +79,17 @@ public class Azienda {
      *
      * @return La partita IVA dell'azienda.
      */
-    public String getpIva() {
-        return pIva;
+    public String getPIva() {
+        return PIva;
     }
 
     /**
      * Imposta la partita IVA dell'azienda.
      *
-     * @param pIva La partita IVA dell'azienda.
+     * @param PIva La partita IVA dell'azienda.
      */
-    public void setpIva(String pIva) {
-        this.pIva = pIva;
+    public void setPIva(String PIva) {
+        this.PIva = PIva;
     }
 
     /**

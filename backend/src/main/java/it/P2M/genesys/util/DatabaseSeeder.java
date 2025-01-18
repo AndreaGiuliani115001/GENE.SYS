@@ -67,8 +67,8 @@ public class DatabaseSeeder {
             Permesso eliminaAziendaGlobale = permessoRepository.save(new Permesso("elimina", "azienda"));
             Permesso aggiungiAziendaGlobale = permessoRepository.save(new Permesso("aggiungi", "azienda"));
 
-            Permesso visualizzaAziendaSpecifico = permessoRepository.save(new Permesso("visualizza", "azienda", p2m.getId()));
-            Permesso modificaAziendaSpecifico = permessoRepository.save(new Permesso("modifica", "azienda", p2m.getId()));
+            Permesso visualizzaAziendaSpecifico = permessoRepository.save(new Permesso("visualizza", "azienda", xyz.getId()));
+            Permesso modificaAziendaSpecifico = permessoRepository.save(new Permesso("modifica", "azienda", xyz.getId()));
 
             // Creazione dei Ruoli
             Ruolo masterRole = new Ruolo(null, "ROLE_MASTER", List.of(
@@ -92,25 +92,25 @@ public class DatabaseSeeder {
             operatoreRole = ruoloRepository.save(operatoreRole);
 
             // Creazione degli Utenti con Ruoli e Permessi Personalizzati
-            Utente masterP2M = new Utente("Master", "P2M", "master@p2m.com", "ROLE_MASTER", passwordEncoder.encode("password"));
+            Utente masterP2M = new Utente("Master", "P2M", "master@p2m.com", masterRole, passwordEncoder.encode("password"));
             masterP2M.setAziendaId(p2m);
             masterP2M.setPermessiAggiuntivi(List.of()); // Nessun permesso extra
             masterP2M.setPermessiLimitati(List.of()); // Nessuna limitazione
             masterP2M = utenteRepository.save(masterP2M);
 
-            Utente adminXYZ = new Utente("Admin", "P2M", "admin@p2m.com", "ROLE_ADMIN", passwordEncoder.encode("password"));
-            adminXYZ.setAziendaId(p2m);
+            Utente adminXYZ = new Utente("Admin", "P2M", "admin@xyz.com", adminRole, passwordEncoder.encode("password"));
+            adminXYZ.setAziendaId(xyz);
             adminXYZ.setPermessiAggiuntivi(List.of(eliminaAziendaGlobale)); // Aggiunge permesso di eliminazione globale
             adminXYZ.setPermessiLimitati(List.of(modificaAziendaSpecifico)); // Rimuove permesso di modifica specifico
             adminXYZ = utenteRepository.save(adminXYZ);
 
-            Utente projectManagerXYZ = new Utente("ProjectManager", "XYZ", "projectmanager@xyz.com", "ROLE_PROJECT_MANAGER", passwordEncoder.encode("password"));
+            Utente projectManagerXYZ = new Utente("ProjectManager", "XYZ", "projectmanager@xyz.com", projectManagerRole, passwordEncoder.encode("password"));
             projectManagerXYZ.setAziendaId(xyz);
             projectManagerXYZ.setPermessiAggiuntivi(List.of()); // Nessun permesso extra
             projectManagerXYZ.setPermessiLimitati(List.of()); // Nessuna limitazione
             projectManagerXYZ = utenteRepository.save(projectManagerXYZ);
 
-            Utente operatoreXYZ = new Utente("Operatore", "XYZ", "operatore@xyz.com", "ROLE_OPERATORE", passwordEncoder.encode("password"));
+            Utente operatoreXYZ = new Utente("Operatore", "XYZ", "operatore@xyz.com", operatoreRole, passwordEncoder.encode("password"));
             operatoreXYZ.setAziendaId(xyz);
             operatoreXYZ.setPermessiAggiuntivi(List.of()); // Nessun permesso extra
             operatoreXYZ.setPermessiLimitati(List.of()); // Nessuna limitazione

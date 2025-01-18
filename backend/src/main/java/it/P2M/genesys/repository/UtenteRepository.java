@@ -25,4 +25,5 @@ public interface UtenteRepository extends MongoRepository<Utente, String> {
      * @return L'utente trovato o {@code null} se nessuna corrispondenza è stata trovata.
      */
     Utente findByEmail(String email);
+
 }

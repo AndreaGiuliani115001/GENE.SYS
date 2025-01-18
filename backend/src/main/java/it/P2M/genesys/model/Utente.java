@@ -22,8 +22,10 @@ public class Utente {
     private String nome; // Nome dell'utente
     private String cognome; // Cognome dell'utente
     private String email; // Email dell'utente
-    private String ruolo; // Ruolo dell'utente (es. admin, project manager, operatore)
     private String password; // Password dell'utente (criptata)
+
+    @DBRef
+    private Ruolo ruolo; // Ruolo dell'utente (es. ROLE_ADMIN, ROLE_MASTER, ROLE_PROJECT_MANAGER, ROLE_OPERATORE)
 
     @DBRef
     private Azienda aziendaId; // Riferimento all'azienda associata all'utente
@@ -51,7 +53,7 @@ public class Utente {
      * @param ruolo    Ruolo dell'utente (es. admin, operatore).
      * @param password Password dell'utente.
      */
-    public Utente(String nome, String cognome, String email, String ruolo, String password) {
+    public Utente(String nome, String cognome, String email, Ruolo ruolo, String password) {
         this.nome = nome;
         this.cognome = cognome;
         this.email = email;
@@ -127,7 +129,7 @@ public class Utente {
      *
      * @return Il ruolo dell'utente (es. admin, project manager, operatore).
      */
-    public String getRuolo() {
+    public Ruolo getRuolo() {
         return ruolo;
     }
 
@@ -136,7 +138,7 @@ public class Utente {
      *
      * @param ruolo Il ruolo da impostare.
      */
-    public void setRuolo(String ruolo) {
+    public void setRuolo(Ruolo ruolo) {
         this.ruolo = ruolo;
     }
 

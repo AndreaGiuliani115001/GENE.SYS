@@ -1,7 +1,6 @@
 package it.P2M.genesys.config;
 
 import it.P2M.genesys.model.CustomUserDetails;
-import it.P2M.genesys.model.Utente;
 import it.P2M.genesys.repository.UtenteRepository;
 import it.P2M.genesys.util.JwtTokenUtil;
 import jakarta.servlet.FilterChain;
@@ -9,20 +8,18 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Filtro di autenticazione JWT.
- * <p>
- * Questo filtro intercetta ogni richiesta HTTP e verifica se contiene un token JWT valido.
- * Se il token è valido, estrae i dettagli dell'utente e li imposta nel contesto di sicurezza
- * di Spring Security.
+ * Filtro per la gestione dell'autenticazione tramite JWT.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -30,79 +27,60 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenUtil jwtTokenUtil;
     private final UtenteRepository utenteRepository;
 
-    /**
-     * Costruttore del filtro di autenticazione JWT.
-     *
-     * @param jwtTokenUtil     Utilità per la gestione dei token JWT.
-     * @param utenteRepository Repository per recuperare i dettagli degli utenti dal database.
-     */
     public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, UtenteRepository utenteRepository) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.utenteRepository = utenteRepository;
     }
 
-    /**
-     * Metodo principale del filtro che viene chiamato per ogni richiesta HTTP.
-     *
-     * @param request     La richiesta HTTP in ingresso.
-     * @param response    La risposta HTTP in uscita.
-     * @param filterChain La catena di filtri da eseguire.
-     * @throws ServletException In caso di errore durante l'elaborazione.
-     * @throws IOException      In caso di errore di input/output.
-     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println("JwtAuthenticationFilter - Header Authorization: " + request.getHeader("Authorization"));
+        // Estrai il token dall'header Authorization
+        String token = jwtTokenUtil.extractToken(request);
+        System.out.println("JwtAuthenticationFilter - Token estratto: " + token);
 
-        // Recupera l'header Authorization dalla richiesta
-        String authHeader = request.getHeader("Authorization");
-
-        // Controlla se l'header è presente e inizia con "Bearer "
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            // Estrae il token dall'header
-            String token = authHeader.substring(7);
-            System.out.println("Token JWT estratto: " + token);
-
-            // Estrae il nome utente dal token
+        if (token != null && jwtTokenUtil.validateToken(token)) {
+            // Estrai le informazioni dal token
             String username = jwtTokenUtil.extractUsername(token);
-            System.out.println("Username estratto dal token: " + username);
+            String aziendaId = jwtTokenUtil.extractFactory(token);
+            String role = jwtTokenUtil.extractRole(token);
+            List<String> permissions = jwtTokenUtil.extractPermissions(token);
 
-            // Verifica che il nome utente non sia nullo e che il contesto di sicurezza sia vuoto
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // Recupera i dettagli dell'utente dal repository
-                Utente utente = utenteRepository.findByEmail(username);
-                if (utente != null) {
-                // Determina il ruolo dell'utente e lo formatta
-                String ruolo = utente.getRuolo();
+            System.out.println("JwtAuthenticationFilter - Dettagli utente dal token:");
+            System.out.println("Username: " + username);
+            System.out.println("Role: " + role);
+            System.out.println("Azienda ID: " + aziendaId);
+            System.out.println("Permessi: " + permissions);
 
-                // Crea una lista di autorità (ruoli) per l'utente
-                List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(ruolo));
+            // Costruisci l'elenco delle autorità (ruolo + permessi)
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority(role)); // Aggiungi il ruolo
+            permissions.forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission))); // Aggiungi i permessi
 
-                // Crea un'istanza di CustomUserDetails per rappresentare l'utente
-                CustomUserDetails customUserDetails = new CustomUserDetails(
-                        utente.getEmail(),          // Email come username
-                        utente.getPassword(),       // Password (potenzialmente nullata)
-                        authorities,                // Autorità (ruoli)
-                        utente.getNome(),           // Nome dell'utente
-                        utente.getCognome(),        // Cognome dell'utente
-                        utente.getAziendaId().getId() // ID dell'azienda associata
-                );
+            // Crea un oggetto CustomUserDetails
+            CustomUserDetails userDetails = new CustomUserDetails(
+                    username != null ? username : "unknown_user", // Valore predefinito
+                    "", // Password vuota (non necessaria per JWT)
+                    authorities != null ? authorities : List.of(), // Lista vuota se null
+                    "Utente Sconosciuto", // Nome predefinito (nel caso fosse null)
+                    aziendaId != null ? aziendaId : "N/A", // ID azienda predefinito
+                    permissions != null ? permissions : List.of() // Lista vuota se null
+            );
 
-                // Crea un token di autenticazione con i dettagli dell'utente
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        customUserDetails, null, authorities
-                );
+            // Crea il token di autenticazione
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
 
-                // Imposta il token nel contesto di sicurezza
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-                System.out.println("Utente autenticato e aggiunto al contesto di sicurezza.");
-                }
-            }
+            // Imposta l'autenticazione nel contesto di sicurezza
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+            System.out.println("JwtAuthenticationFilter - Utente autenticato: " + username);
+
+        } else {
+            System.out.println("JwtAuthenticationFilter - Token non valido o mancante.");
         }
 
-        // Prosegue con la catena di filtri
+        // Passa al filtro successivo nella catena
         filterChain.doFilter(request, response);
     }
 }
